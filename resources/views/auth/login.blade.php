@@ -142,15 +142,6 @@
                 </div>
             </div>
 
-            <div class="mb-4">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                    <label class="form-check-label" for="remember" style="font-size:0.82rem; color:#666;">
-                        Ingat saya
-                    </label>
-                </div>
-            </div>
-
             <button type="submit" class="btn-login">
                 <i class="bi bi-box-arrow-in-right me-2"></i>Masuk ke Dasbor
             </button>
