@@ -26,4 +26,3 @@ yarn-error.log
 .env
 /storage/*.key
 .phpunit.result.cache
-.env.testing
