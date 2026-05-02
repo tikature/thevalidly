@@ -167,7 +167,7 @@
 <main class="py-4">
     <div class="container-fluid px-4">
 
-        @if(session('success'))
+        @if(session('success') && !request()->routeIs('superadmin.*'))
             <div class="alert alert-success alert-dismissible fade show border-0 mb-4" role="alert"
                  style="background:#e6f9f0; color:#1a6b3c; border-left:4px solid #1a6b3c !important; border-radius:8px;">
                 <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
