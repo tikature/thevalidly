@@ -157,6 +157,14 @@
 
 @section('content')
 
+{{-- ══ TOAST NOTIFIKASI ══ --}}
+{{-- Muncul untuk success dan error validasi (email duplikat, dll) --}}
+<div id="toastWrap" style="
+    position:fixed; top:24px; right:24px; z-index:9999;
+    display:flex; flex-direction:column; gap:10px; pointer-events:none;
+"></div>
+
+
 {{-- Header --}}
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
     <div>
@@ -341,12 +349,7 @@
             <form method="POST" action="{{ route('superadmin.institutions.store') }}">
                 @csrf
                 <div class="modal-body p-4">
-                    {{-- Error duplikasi email --}}
-                    @if($errors->any())
-                    <div class="alert border-0 mb-3" style="background:#fef2f2;color:#b91c1c;font-size:0.82rem;border-radius:8px;">
-                        <i class="bi bi-exclamation-circle me-2"></i>{{ $errors->first() }}
-                    </div>
-                    @endif
+
 
                     <div class="row g-3">
                         <div class="col-12">
@@ -447,6 +450,7 @@
             <form method="POST" action="" id="formAddAdmin">
                 @csrf
                 <div class="modal-body p-4">
+
                     <div class="mb-3">
                         <label class="form-label-sm">Nama Admin *</label>
                         <input type="text" name="admin_name" class="form-control"
@@ -491,6 +495,7 @@
             <form method="POST" id="formEditLembaga" action="">
                 @csrf @method('PATCH')
                 <div class="modal-body p-4">
+
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label fw-600" style="font-size:.78rem;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Nama Lembaga</label>
@@ -533,6 +538,7 @@
             <form method="POST" id="formEditAdmin" action="">
                 @csrf @method('PATCH')
                 <div class="modal-body p-4">
+
                     <div class="mb-3">
                         <label class="form-label fw-600" style="font-size:.78rem;text-transform:uppercase;letter-spacing:1px;color:#6b7280">Nama</label>
                         <input type="text" name="admin_name" id="editAdminName" class="form-control" required>
@@ -601,6 +607,51 @@
 
 @push('scripts')
 <script>
+// ══ TOAST SYSTEM ══════════════════════════════════════════════════════
+function showToast(message, type = 'error') {
+    const wrap  = document.getElementById('toastWrap');
+    const toast = document.createElement('div');
+    const isErr = type === 'error';
+
+    toast.style.cssText = `
+        background: ${isErr ? '#fff0f0' : '#f0fdf4'};
+        border: 1px solid ${isErr ? '#fca5a5' : '#86efac'};
+        border-left: 4px solid ${isErr ? '#ef4444' : '#22c55e'};
+        color: ${isErr ? '#b91c1c' : '#15803d'};
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        min-width: 280px;
+        max-width: 380px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        pointer-events: all;
+        animation: slideIn .25s ease;
+    `;
+
+    toast.innerHTML = `
+        <i class="bi bi-${isErr ? 'exclamation-circle-fill' : 'check-circle-fill'}" style="font-size:1.1rem;flex-shrink:0"></i>
+        <span style="flex:1">${message}</span>
+        <button onclick="closeToast(this.parentElement)" style="background:none;border:none;color:inherit;cursor:pointer;font-size:1rem;padding:0;line-height:1;opacity:.6" title="Tutup">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    `;
+
+    wrap.appendChild(toast);
+
+    // Auto close 5 detik
+    setTimeout(() => closeToast(toast), 5000);
+}
+
+function closeToast(el) {
+    if (!el || !el.parentElement) return;
+    el.style.animation = 'slideOut .2s ease forwards';
+    setTimeout(() => el.remove(), 200);
+}
+
 // ── Toggle password visibility
 function togglePw(inputId, btn) {
     const input = document.getElementById(inputId);
@@ -614,61 +665,86 @@ function togglePw(inputId, btn) {
     }
 }
 
-// ── Modal Tambah Admin
-// Modal edit lembaga
+// ── Tampilkan toast dari server saat halaman load
+document.addEventListener('DOMContentLoaded', function () {
+    @if(session('success'))
+        showToast(@json(session('success')), 'success');
+    @endif
+
+    @if($errors->hasBag('addInstitution'))
+        showToast(@json($errors->getBag('addInstitution')->first()), 'error');
+    @endif
+    @if($errors->hasBag('editInstitution'))
+        showToast(@json($errors->getBag('editInstitution')->first()), 'error');
+    @endif
+    @if($errors->hasBag('addAdmin'))
+        showToast(@json($errors->getBag('addAdmin')->first()), 'error');
+    @endif
+    @if($errors->hasBag('editAdmin'))
+        showToast(@json($errors->getBag('editAdmin')->first()), 'error');
+    @endif
+});
+
+// ── Modal edit lembaga — isi form saat buka
 document.getElementById('modalEditLembaga').addEventListener('show.bs.modal', function(e) {
     const btn = e.relatedTarget;
+    if (!btn) return;
     document.getElementById('editInstName').value    = btn.dataset.name || '';
     document.getElementById('editInstEmail').value   = btn.dataset.email || '';
     document.getElementById('editInstPhone').value   = btn.dataset.phone || '';
     document.getElementById('editInstAddress').value = btn.dataset.address || '';
-    const id = btn.dataset.id;
-    document.getElementById('formEditLembaga').action = `/superadmin/institutions/${id}`;
+    document.getElementById('formEditLembaga').action = `/superadmin/institutions/${btn.dataset.id}`;
 });
 
-// Modal edit admin
+// ── Modal edit admin — isi form saat buka
 document.getElementById('modalEditAdmin').addEventListener('show.bs.modal', function(e) {
     const btn = e.relatedTarget;
+    if (!btn) return;
     document.getElementById('editAdminName').value  = btn.dataset.name || '';
     document.getElementById('editAdminEmail').value = btn.dataset.email || '';
-    const id = btn.dataset.id;
-    document.getElementById('formEditAdmin').action = `/superadmin/admins/${id}`;
+    document.getElementById('formEditAdmin').action = `/superadmin/admins/${btn.dataset.id}`;
 });
 
+// ── Modal tambah admin — isi action saat buka
 document.getElementById('modalAddAdmin').addEventListener('show.bs.modal', function(e) {
-    const btn      = e.relatedTarget;
-    const instId   = btn.getAttribute('data-inst-id');
-    const instName = btn.getAttribute('data-inst-name');
-    document.getElementById('modalInstName').textContent = instName;
+    const btn = e.relatedTarget;
+    if (!btn) return;
+    document.getElementById('modalInstName').textContent = btn.getAttribute('data-inst-name');
     const baseUrl = "{{ url('superadmin/institutions') }}";
-    document.getElementById('formAddAdmin').action = `${baseUrl}/${instId}/admins`;
+    document.getElementById('formAddAdmin').action = `${baseUrl}/${btn.getAttribute('data-inst-id')}/admins`;
 });
 
 // ── Modal Konfirmasi Hapus
 function confirmDelete(actionUrl, title, bodyHtml, btnLabel) {
-    const modal    = document.getElementById('modalConfirmDelete');
-    const form     = document.getElementById('formConfirmDelete');
-    const titleEl  = document.getElementById('confirmModalTitle');
-    const bodyEl   = document.getElementById('confirmModalBody');
-    const btnEl    = document.getElementById('confirmModalBtn');
+    const modal   = document.getElementById('modalConfirmDelete');
+    const form    = document.getElementById('formConfirmDelete');
+    const titleEl = document.getElementById('confirmModalTitle');
+    const bodyEl  = document.getElementById('confirmModalBody');
+    const btnEl   = document.getElementById('confirmModalBtn');
 
     titleEl.textContent = title;
     bodyEl.innerHTML    = bodyHtml;
     btnEl.textContent   = btnLabel || 'Hapus';
+    form.action         = actionUrl;
 
-    // Set action URL ke form tersembunyi
-    form.action = actionUrl;
-
-    // Tombol konfirmasi → submit form
     btnEl.onclick = () => {
-        btnEl.disabled   = true;
-        btnEl.innerHTML  = '<span class="spinner-border spinner-border-sm me-1"></span> Menghapus...';
+        btnEl.disabled  = true;
+        btnEl.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Menghapus...';
         form.submit();
     };
 
-    // Tampilkan modal
-    const bsModal = new bootstrap.Modal(modal);
-    bsModal.show();
+    new bootstrap.Modal(modal).show();
 }
 </script>
+
+<style>
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to   { opacity: 0; transform: translateX(20px); }
+}
+</style>
 @endpush
