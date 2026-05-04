@@ -1,0 +1,135 @@
+:root {
+    --navy: #0f1e3c;
+    --navy-mid: #1a3260;
+    --gold: #c9a84c;
+    --gold-light: #e8d48b;
+}
+body {
+    font-family: "Inter", sans-serif;
+    background: linear-gradient(135deg, var(--navy) 0%, #1a3a6e 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-card {
+    background: #fff;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 395px;
+    padding: 44px 40px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+}
+.login-brand {
+    font-family: "Playfair Display", serif;
+    font-size: 2rem;
+    color: var(--navy);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 4px;
+}
+.login-brand span {
+    color: var(--gold);
+}
+.login-sub {
+    text-align: center;
+    font-size: 0.8rem;
+    color: #aaa;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+}
+.form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #555;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.form-control {
+    border: 1.5px solid #dde4f0;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+.form-control:focus {
+    border-color: var(--navy-mid);
+    box-shadow: 0 0 0 3px rgba(26, 50, 96, 0.08);
+}
+/* Wrapper password + toggle */
+.input-password-wrap {
+    position: relative;
+}
+.input-password-wrap .form-control {
+    padding-right: 42px;
+}
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.btn-toggle-password:hover {
+    color: var(--navy);
+}
+.btn-login {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    width: 100%;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+.btn-login:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+.divider {
+    height: 1px;
+    background: #eee;
+    margin: 24px 0;
+}
+.back-link {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #aaa;
+}
+.back-link a {
+    color: var(--navy-mid);
+    font-weight: 500;
+    text-decoration: none;
+}
+.back-link a:hover {
+    color: var(--gold);
+}
+.reset-info {
+    background: #f8faff;
+    border: 1px solid #dde4f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    color: #6b7280;
+    line-height: 1.6;
+}
+.reset-info a {
+    color: var(--navy-mid);
+    font-weight: 600;
+    text-decoration: none;
+}
+.reset-info a:hover {
+    color: var(--gold);
+    text-decoration: underline;
+}
