@@ -13,6 +13,9 @@ use App\Http\Controllers\CertificateController;
 */
 Route::get('/', fn() => view('landing'))->name('landing');
 
+// Verifikasi sertifikat (publik)
+Route::get('/verify/{token}', [CertificateController::class, 'verify'])->name('certificate.verify');
+
 /*
 |--------------------------------------------------------------------------
 | Auth
@@ -28,9 +31,27 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'role:admin'])->prefix('dashboard')->group(function () {
-    Route::get('/', [CertificateController::class, 'index'])->name('certificate.index');
-    Route::get('/profile',   [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // Generator
+    Route::get('/',                          [CertificateController::class, 'index'])->name('certificate.index');
+
+    // Store & PDF
+    Route::post('/certificates',             [CertificateController::class, 'store'])->name('certificate.store');
+    Route::get('/certificates/{token}/pdf',  [CertificateController::class, 'pdf'])->name('certificate.pdf');
+    Route::delete('/certificates/{certificate}', [CertificateController::class, 'destroy'])->name('certificate.destroy');
+    Route::post('/certificate/pregenerate/{token}', [CertificateController::class, 'pregenerate'])
+    ->name('certificate.pregenerate');
+    
+    // Riwayat
+    Route::get('/history',                   [CertificateController::class, 'history'])->name('certificate.history');
+
+    // Aset lembaga
+    Route::post('/assets/upload',            [CertificateController::class, 'uploadAsset'])->name('certificate.asset.upload');
+    Route::post('/assets/remove',            [CertificateController::class, 'removeAsset'])->name('certificate.asset.remove');
+    Route::get('/assets',                    [CertificateController::class, 'getAssets'])->name('certificate.asset.get');
+
+    // Profil
+    Route::get('/profile',                   [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile',                 [ProfileController::class, 'update'])->name('profile.update');
 });
 
 /*

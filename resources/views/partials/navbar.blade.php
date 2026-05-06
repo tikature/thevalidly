@@ -30,9 +30,15 @@
                     @else
                         {{-- Admin Lembaga: hanya Generator & Profile --}}
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('certificate.*') ? 'active' : '' }}"
+                            <a class="nav-link {{ request()->routeIs('certificate.index') ? 'active' : '' }}"
                                href="{{ route('certificate.index') }}">
                                 <i class="bi bi-award me-1"></i>Generator
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('certificate.history') ? 'active' : '' }}"
+                               href="{{ route('certificate.history') }}">
+                                <i class="bi bi-clock-history me-1"></i>Riwayat
                             </a>
                         </li>
                         <li class="nav-item">
