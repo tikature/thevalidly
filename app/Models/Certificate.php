@@ -11,7 +11,7 @@ class Certificate extends Model
     use HasFactory;
 
     protected $fillable = [
-        'institution_id', 'issued_by', 'nama', 'perusahaan', 'nomor',
+        'institution_id', 'batch_id', 'issued_by', 'nama', 'perusahaan', 'nomor',
         'event_name', 'event_date', 'event_place',
         'signer_name', 'signer_title', 'cert_desc',
         'verification_token', 'issued_at',
@@ -41,10 +41,25 @@ class Certificate extends Model
         return $this->belongsTo(User::class, 'issued_by');
     }
 
+    public function batch()
+    {
+        return $this->belongsTo(CertificateBatch::class, 'batch_id');
+    }
+
     // ── URL Helpers ──────────────────────────────────────────────
     public function verificationUrl(): string
     {
         return url('/verify/' . $this->verification_token);
+    }
+
+    public function participantUrl(): string
+    {
+        return url('/cert/' . $this->verification_token);
+    }
+
+    public function pdfUrl(): string
+    {
+        return route('certificate.pdf', $this->verification_token);
     }
 
     // ── Scopes ──────────────────────────────────────────────────
