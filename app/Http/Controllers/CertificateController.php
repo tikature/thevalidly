@@ -3,31 +3,54 @@
 namespace App\Http\Controllers;
 
 use App\Models\Certificate;
+use App\Models\CertificateBatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class CertificateController extends Controller
 {
-    /**
-     * Halaman generator sertifikat.
-     */
     public function index()
     {
         $institution = auth()->user()->institution;
         return view('certificate.index', compact('institution'));
     }
 
-    /**
-     * Simpan sertifikat ke DB.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'nama'         => 'required|string|max:255',
+            'perusahaan'   => 'nullable|string|max:255',
+            'nomor'        => 'required|string|max:100',
+            'cert_desc'    => 'nullable|string|max:200',
+            'event_name'   => 'required|string|max:255',
+            'event_date'   => 'required|string|max:100',
+            'event_place'  => 'nullable|string|max:255',
+            'signer_name'  => 'nullable|string|max:255',
+            'signer_title' => 'nullable|string|max:255',
+        ]);
+
+        $cert = Certificate::create([
+            ...$validated,
+            'institution_id' => auth()->user()->institution_id,
+            'issued_by'      => auth()->id(),
+        ]);
+
+        return response()->json([
+            'success'            => true,
+            'verification_token' => $cert->verification_token,
+            'verification_url'   => $cert->verificationUrl(),
+            'pdf_url'            => $cert->pdfUrl(),
+        ]);
+    }
+
+    public function storeBulk(Request $request)
+    {
+        $request->validate([
             'participants'              => 'required|array|min:1',
             'participants.*.nama'       => 'required|string|max:255',
+            'participants.*.nomor'      => 'nullable|string|max:100',
             'participants.*.perusahaan' => 'nullable|string|max:255',
-            'participants.*.nomor'      => 'required|string|max:100',
             'event_name'                => 'required|string|max:255',
             'event_date'                => 'required|string|max:100',
             'event_place'               => 'nullable|string|max:255',
@@ -36,45 +59,40 @@ class CertificateController extends Controller
             'cert_desc'                 => 'nullable|string|max:200',
         ]);
 
-        $user          = auth()->user();
-        $institutionId = $user->institution_id;
+        $institutionId = auth()->user()->institution_id;
         $certificates  = [];
 
-        foreach ($validated['participants'] as $p) {
+        foreach ($request->participants as $p) {
             $cert = Certificate::create([
                 'institution_id' => $institutionId,
-                'issued_by'      => $user->id,
+                'issued_by'      => auth()->id(),
                 'nama'           => $p['nama'],
                 'perusahaan'     => $p['perusahaan'] ?? null,
                 'nomor'          => $p['nomor'],
-                'event_name'     => $validated['event_name'],
-                'event_date'     => $validated['event_date'],
-                'event_place'    => $validated['event_place'] ?? null,
-                'signer_name'    => $validated['signer_name'] ?? null,
-                'signer_title'   => $validated['signer_title'] ?? null,
-                'cert_desc'      => $validated['cert_desc'] ?? null,
+                'cert_desc'      => $request->cert_desc,
+                'event_name'     => $request->event_name,
+                'event_date'     => $request->event_date,
+                'event_place'    => $request->event_place,
+                'signer_name'    => $request->signer_name,
+                'signer_title'   => $request->signer_title,
             ]);
 
             $certificates[] = [
-                'id'                 => $cert->id,
                 'nama'               => $cert->nama,
                 'nomor'              => $cert->nomor,
-                'verification_token' => $cert->verification_token,
                 'verification_url'   => $cert->verificationUrl(),
-                'pdf_url'            => route('certificate.pdf', $cert->verification_token),
+                'verification_token' => $cert->verification_token,
+                'pdf_url'            => $cert->pdfUrl(),
             ];
         }
 
         return response()->json([
+            'success'      => true,
             'count'        => count($certificates),
             'certificates' => $certificates,
         ]);
     }
 
-    /**
-     * Pre-generate PDF dan simpan ke storage agar download berikutnya instan.
-     * Dipanggil dari JS di background setelah store() berhasil.
-     */
     public function pregenerate(string $token)
     {
         $certificate = Certificate::where('verification_token', $token)
@@ -85,7 +103,6 @@ class CertificateController extends Controller
             abort(403);
         }
 
-        // Jika sudah ada file cache, tidak perlu generate ulang
         $cachePath = 'pdf_cache/' . $token . '.pdf';
         if (Storage::disk('local')->exists($cachePath)) {
             return response()->json(['success' => true, 'cached' => true]);
@@ -94,27 +111,20 @@ class CertificateController extends Controller
         try {
             $institution = $certificate->institution;
             $pdf = $this->buildPdf($certificate, $institution);
-
-            // Simpan ke storage/app/pdf_cache/
             Storage::disk('local')->put($cachePath, $pdf->output());
-
             return response()->json(['success' => true, 'cached' => false]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Generate PDF sertifikat via DomPDF.
-     * Jika sudah ada cache dari pregenerate(), langsung serve dari file.
-     */
     public function pdf(string $token)
     {
         $certificate = Certificate::where('verification_token', $token)
             ->with('institution')
             ->firstOrFail();
 
-        if (auth()->user()->institution_id !== $certificate->institution_id) {
+        if (auth()->check() && auth()->user()->institution_id !== $certificate->institution_id) {
             abort(403);
         }
 
@@ -124,7 +134,6 @@ class CertificateController extends Controller
             . str_replace(['/', '\\'], '-', $certificate->nomor)
             . '.pdf';
 
-        // Cek apakah sudah ada cache dari pregenerate()
         $cachePath = 'pdf_cache/' . $token . '.pdf';
         if (Storage::disk('local')->exists($cachePath)) {
             $pdfContent = Storage::disk('local')->get($cachePath);
@@ -134,16 +143,11 @@ class CertificateController extends Controller
             ]);
         }
 
-        // Fallback: generate on-the-fly jika belum ada cache
         $institution = $certificate->institution;
         $pdf = $this->buildPdf($certificate, $institution);
-
         return $pdf->download($filename);
     }
 
-    /**
-     * Build DomPDF instance — dipakai oleh pdf() dan pregenerate().
-     */
     private function buildPdf(Certificate $certificate, $institution)
     {
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('certificate.pdf', [
@@ -166,9 +170,6 @@ class CertificateController extends Controller
         ]);
     }
 
-    /**
-     * Upload aset (logo, ttd, cap, background) per lembaga.
-     */
     public function uploadAsset(Request $request)
     {
         $request->validate([
@@ -199,9 +200,6 @@ class CertificateController extends Controller
         ]);
     }
 
-    /**
-     * Hapus aset per lembaga.
-     */
     public function removeAsset(Request $request)
     {
         $request->validate([
@@ -220,9 +218,6 @@ class CertificateController extends Controller
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Ambil URL semua aset lembaga.
-     */
     public function getAssets()
     {
         $institution = auth()->user()->institution;
@@ -235,46 +230,43 @@ class CertificateController extends Controller
         ]);
     }
 
-    /**
-     * Riwayat sertifikat.
-     */
     public function history(Request $request)
     {
         $institutionId = auth()->user()->institution_id;
         $sort          = $request->sort === 'asc' ? 'asc' : 'desc';
+        $sortBy        = $request->sort_by === 'event' ? 'event_date' : 'issued_at';
 
         $certificates = Certificate::forInstitution($institutionId)
             ->with('issuedBy')
             ->when($request->search, fn($q) => $q->search($request->search))
-            ->orderBy('issued_at', $sort)
+            ->orderBy($sortBy, $sort)
             ->paginate(20)
             ->withQueryString();
 
         return view('certificate.history', compact('certificates', 'sort'));
     }
 
-    /**
-     * Hapus sertifikat.
-     */
-    public function destroy(Certificate $certificate)
+    public function historyBatch(Request $request)
     {
-        if ($certificate->institution_id !== auth()->user()->institution_id) {
-            abort(403);
-        }
+        $institutionId = auth()->user()->institution_id;
+        $sort          = $request->sort === 'asc' ? 'asc' : 'desc';
+        $sortBy        = $request->sort_by === 'event' ? 'event_date' : 'started_at';
 
-        // Hapus cache PDF jika ada
-        $cachePath = 'pdf_cache/' . $certificate->verification_token . '.pdf';
-        if (Storage::disk('local')->exists($cachePath)) {
-            Storage::disk('local')->delete($cachePath);
-        }
+        $batches = CertificateBatch::where('institution_id', $institutionId)
+            ->with('issuedBy')
+            ->when($request->search, function ($q) use ($request) {
+                $q->where(function ($q2) use ($request) {
+                    $q2->where('title', 'like', "%{$request->search}%")
+                       ->orWhere('event_name', 'like', "%{$request->search}%");
+                });
+            })
+            ->orderBy($sortBy, $sort)
+            ->paginate(20)
+            ->withQueryString();
 
-        $certificate->delete();
-        return back()->with('success', 'Sertifikat berhasil dihapus.');
+        return view('certificate.history-batch', compact('batches', 'sort'));
     }
 
-    /**
-     * Halaman verifikasi publik.
-     */
     public function verify(string $token)
     {
         $certificate = Certificate::where('verification_token', $token)
@@ -288,9 +280,30 @@ class CertificateController extends Controller
         return view('certificate.verify', compact('certificate'));
     }
 
-    /**
-     * Konvert relative storage path ke absolute path untuk DomPDF.
-     */
+    public function participant(string $token)
+    {
+        $certificate = Certificate::where('verification_token', $token)
+            ->with('institution')
+            ->firstOrFail();
+
+        return view('certificate.participant', compact('certificate'));
+    }
+
+    public function destroy(Certificate $certificate)
+    {
+        if ($certificate->institution_id !== auth()->user()->institution_id) {
+            abort(403);
+        }
+
+        $cachePath = 'pdf_cache/' . $certificate->verification_token . '.pdf';
+        if (Storage::disk('local')->exists($cachePath)) {
+            Storage::disk('local')->delete($cachePath);
+        }
+
+        $certificate->delete();
+        return back()->with('success', 'Sertifikat berhasil dihapus.');
+    }
+
     private function resolveAssetPath(?string $relativePath): string
     {
         if (!$relativePath) return '';
