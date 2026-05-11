@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
@@ -14,7 +16,7 @@ class Certificate extends Model
         'institution_id', 'batch_id', 'issued_by', 'nama', 'perusahaan', 'nomor',
         'event_name', 'event_date', 'event_place',
         'signer_name', 'signer_title', 'cert_desc',
-        'verification_token', 'issued_at',
+        'verification_token', 'qr_code', 'issued_at',
     ];
 
     protected $casts = [
@@ -26,6 +28,12 @@ class Certificate extends Model
         static::creating(function (Certificate $cert) {
             if (empty($cert->verification_token)) {
                 $cert->verification_token = (string) Str::uuid();
+            }
+        });
+
+        static::created(function (Certificate $cert) {
+            if (empty($cert->qr_code)) {
+                $cert->generateAndSaveQrCode();
             }
         });
     }
@@ -60,6 +68,40 @@ class Certificate extends Model
     public function pdfUrl(): string
     {
         return route('certificate.pdf', $this->verification_token);
+    }
+
+    // ── QR Code ─────────────────────────────────────────────────
+
+    /**
+     * Generate QR code PNG (data:image/png;base64,...) via endroid/qr-code v5.
+     * PNG di-embed langsung di PDF via <img src="data:image/png;base64,...">
+     * — didukung penuh oleh DomPDF.
+     *
+     * Install: composer require endroid/qr-code
+     */
+    public function generateAndSaveQrCode(): void
+    {
+        $url = $this->verificationUrl();
+
+        $result  = (new PngWriter)->write(QrCode::create($url));
+        $dataUri = 'data:image/png;base64,' . base64_encode($result->getString());
+
+        static::withoutEvents(function () use ($dataUri) {
+            $this->update(['qr_code' => $dataUri]);
+        });
+    }
+
+    /**
+     * Ambil QR code data URI PNG. Jika belum ada, generate on-demand.
+     */
+    public function getQrCodeDataUri(): string
+    {
+        if (empty($this->qr_code)) {
+            $this->generateAndSaveQrCode();
+            $this->refresh();
+        }
+
+        return $this->qr_code;
     }
 
     // ── Scopes ──────────────────────────────────────────────────
