@@ -6,30 +6,147 @@
     <title>Sertifikat Tidak Ditemukan — Validly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --navy:#0F1E3C; --gold:#C9A84C; }
-        body { font-family:'Plus Jakarta Sans',sans-serif; background:#f8fafc; min-height:100vh; display:flex; flex-direction:column; }
-        .verify-nav { background:var(--navy); padding:14px 32px; }
-        .verify-brand { font-weight:800; font-size:1.2rem; color:#E8D48B; text-decoration:none; display:flex; align-items:center; gap:8px; }
-        .brand-icon { width:28px; height:28px; background:var(--gold); border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:.8rem; color:var(--navy); font-weight:900; }
-        .wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:40px 16px; }
-        .card-invalid { background:#fff; border-radius:20px; padding:48px 40px; max-width:480px; text-align:center; box-shadow:0 20px 60px rgba(15,30,60,.1); border-top:4px solid #ef4444; }
+        :root { --navy:#0f1e3c; --gold:#c9a84c; --gold-light:#e8d48b; }
+
+        * { box-sizing:border-box; }
+        body {
+            font-family:'Inter',sans-serif; margin:0;
+            background:#f8fafc; min-height:100vh;
+            display:flex; flex-direction:column;
+        }
+
+        /* Navbar */
+        .navbar-validly {
+            background:var(--navy);
+            border-bottom:1px solid rgba(201,168,76,.15);
+            padding:16px 0;
+        }
+        .navbar-brand-text {
+            font-family:'Playfair Display',serif;
+            font-size:1.4rem; color:var(--gold-light);
+            letter-spacing:1px; text-decoration:none;
+        }
+
+        /* Center wrap */
+        .wrap {
+            flex:1; display:flex;
+            align-items:center; justify-content:center;
+            padding:48px 16px;
+        }
+
+        /* Card */
+        .card-invalid {
+            background:#fff; border-radius:20px;
+            padding:44px 36px; max-width:480px; width:100%;
+            text-align:center;
+            box-shadow:0 20px 60px rgba(15,30,60,.1);
+            border-top:4px solid #ef4444;
+        }
+
+        .icon-wrap {
+            width:64px; height:64px; border-radius:50%;
+            background:#fef2f2; border:1px solid #fecaca;
+            display:flex; align-items:center; justify-content:center;
+            margin:0 auto 20px;
+            font-size:1.6rem; color:#ef4444;
+        }
+
+        .card-invalid h4 {
+            font-family:'Playfair Display',serif;
+            font-size:1.4rem; font-weight:600;
+            color:var(--navy); margin-bottom:10px;
+        }
+
+        .card-invalid p {
+            color:#6b7280; font-size:.9rem;
+            line-height:1.65; margin-bottom:20px;
+        }
+
+        .token-box {
+            background:#f8fafc; border:1px solid #eef2f9;
+            border-radius:10px; padding:10px 14px;
+            font-family:monospace; font-size:.78rem;
+            color:#9ca3af; word-break:break-all;
+            margin-bottom:24px; text-align:left;
+        }
+        .token-box span {
+            display:block; font-size:.65rem;
+            text-transform:uppercase; letter-spacing:1px;
+            color:#d1d5db; margin-bottom:3px;
+        }
+
+        .btn-home {
+            background:var(--navy); color:var(--gold-light);
+            border:none; border-radius:10px;
+            padding:11px 24px; font-weight:700;
+            font-size:.875rem; text-decoration:none;
+            display:inline-flex; align-items:center; gap:7px;
+            transition:all .2s;
+        }
+        .btn-home:hover { background:#1a3260; color:var(--gold-light); transform:translateY(-1px); }
+
+        .btn-retry {
+            background:var(--gold); color:var(--navy);
+            border:none; border-radius:10px;
+            padding:11px 24px; font-weight:700;
+            font-size:.875rem; text-decoration:none;
+            display:inline-flex; align-items:center; gap:7px;
+            transition:all .2s;
+        }
+        .btn-retry:hover { background:var(--gold-light); color:var(--navy); transform:translateY(-1px); }
+
+        /* Footer */
+        .footer-landing {
+            text-align:center; color:#9ca3af;
+            font-size:.75rem; padding:20px;
+        }
     </style>
 </head>
 <body>
-<nav class="verify-nav"><a href="{{ route('landing') }}" class="verify-brand"><div class="brand-icon">V</div>Validly</a></nav>
+
+<nav class="navbar-validly">
+    <div class="container d-flex align-items-center justify-content-between">
+        <a href="{{ route('landing') }}" class="navbar-brand-text">✦ Validly</a>
+        <span style="font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase">
+            Sistem Verifikasi Sertifikat
+        </span>
+    </div>
+</nav>
+
 <div class="wrap">
     <div class="card-invalid">
-        <div style="font-size:2.5rem;margin-bottom:16px">❌</div>
-        <h4 class="fw-bold mb-2" style="color:var(--navy)">Sertifikat Tidak Ditemukan</h4>
-        <p class="text-muted mb-4">Kode verifikasi tidak cocok dengan sertifikat manapun. Pastikan kode yang dimasukkan benar.</p>
+
+        <div class="icon-wrap">
+            <i class="bi bi-x-circle-fill"></i>
+        </div>
+
+        <h4>Sertifikat Tidak Ditemukan</h4>
+        <p>Kode verifikasi tidak cocok dengan sertifikat manapun. Pastikan kode yang dimasukkan sudah benar.</p>
+
         @if(!empty($token))
-        <div style="background:#f8fafc;border:1px solid #eef2f9;border-radius:10px;padding:10px 14px;font-size:.78rem;color:#9ca3af;word-break:break-all;margin-bottom:24px;font-family:monospace">{{ $token }}</div>
+        <div class="token-box">
+            <span>Kode yang dicari</span>
+            {{ $token }}
+        </div>
         @endif
-        <a href="{{ route('landing') }}" class="btn" style="background:var(--navy);color:#E8D48B;border:none;border-radius:10px;padding:11px 28px;font-weight:700">
-            <i class="bi bi-house me-1"></i>Beranda
-        </a>
+
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{{ route('landing') }}" class="btn-home">
+                <i class="bi bi-house"></i> Beranda
+            </a>
+            <a href="https://thevalidly.com/#verifikasi" class="btn-retry">
+                <i class="bi bi-arrow-counterclockwise"></i> Coba Lagi
+            </a>
+        </div>
+
     </div>
 </div>
+
+<div class="footer-landing">
+    &copy; {{ date('Y') }} Validly — Platform Generator Sertifikat Digital
+</div>
+
 </body>
 </html>
