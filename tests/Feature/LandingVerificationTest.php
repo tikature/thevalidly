@@ -47,7 +47,7 @@ class LandingVerificationTest extends TestCase
     public function landing_page_shows_upload_qr_option(): void
     {
         $this->get(route('landing'))
-            ->assertSee('uploadInput', false)
+            ->assertSee('uploadQrInput', false)
             ->assertSee('Upload foto atau PDF sertifikat');
     }
 
