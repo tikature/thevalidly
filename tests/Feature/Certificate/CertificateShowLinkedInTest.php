@@ -60,10 +60,12 @@ class CertificateShowLinkedInTest extends TestCase
     }
 
     #[Test]
-    public function certificate_show_returns_404_for_invalid_token(): void
+    public function certificate_invalid_token_shows_invalid_page(): void
     {
         $this->get(route('certificate.participant', 'token-tidak-ada'))
-            ->assertStatus(404);
+            ->assertStatus(200)
+            ->assertViewIs('certificate.participant-invalid')
+            ->assertSee('Sertifikat Tidak Ditemukan');
     }
 
     // ══════════════════════════════════════════════════════════════

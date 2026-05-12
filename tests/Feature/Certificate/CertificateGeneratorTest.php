@@ -183,9 +183,12 @@ class CertificateGeneratorTest extends TestCase
     }
 
     #[Test]
-    public function participant_page_returns_404_for_invalid_token(): void
+    public function certificate_invalid_token_shows_invalid_page(): void
     {
-        $this->get(route('certificate.participant', 'invalid-token'))->assertNotFound();
+        $this->get(route('certificate.participant', 'token-tidak-ada'))
+            ->assertStatus(200)
+            ->assertViewIs('certificate.participant-invalid')
+            ->assertSee('Sertifikat Tidak Ditemukan');
     }
 
     // ── Verifikasi publik ──────────────────────────────────────
