@@ -46,7 +46,6 @@ body {
 }
 
 /* Seluruh konten di tengah */
-/* BARU - tambah inset 20px atas bawah */
 .main {
     position: absolute;
     top: 20px; left: 0;
@@ -176,7 +175,6 @@ body {
 .company-no-logo { top: 231px; }
 
 /* ===== WRAPPER: cert-desc + event-name + date-line ===== */
-/* Posisi awal sama seperti cert-desc semula, tapi konten di dalamnya flow normal */
 .content-bottom {
     position: absolute;
     top: 302px;
@@ -270,6 +268,42 @@ body {
     font-size: 11.5px;
     color: #555555;
     z-index: 3;
+}
+
+/* ========================================
+   QR CODE — POJOK KIRI BAWAH (Iterasi 4)
+   ======================================== */
+.qr-block {
+    position: absolute;
+    bottom: 14px;
+    right: 16px;
+    z-index: 5;
+    width: 90px;
+    text-align: center;
+}
+
+.qr-block img {
+    width: 70px;
+    height: 70px;
+    display: block;
+    margin: 0 auto;
+}
+
+.qr-label {
+    font-family: DejaVu Sans, sans-serif;
+    font-size: 6px;
+    color: #888888;
+    line-height: 1.4;
+    margin-top: 2px;
+    text-align: center;
+}
+
+.qr-label strong {
+    display: block;
+    font-size: 6.5px;
+    color: #444444;
+    font-weight: bold;
+    margin-bottom: 1px;
 }
 </style>
 </head>
@@ -383,6 +417,19 @@ body {
 
 {{-- Jabatan --}}
 <div class="signer-title">{{ $certificate->signer_title }}</div>
+
+{{-- ========== QR CODE POJOK KIRI BAWAH (Iterasi 4) ==========
+     Di-render sebagai inline SVG — DomPDF tidak support data:image/svg+xml
+     di dalam tag <img>, tapi support inline <svg> langsung di HTML. --}}
+@if($certificate->qr_code)
+<div class="qr-block">
+    <img src="{{ $certificate->qr_code }}" alt="QR">
+    <div class="qr-label">
+        <strong>Scan untuk verifikasi</strong>
+        validly.app/verify/{{ substr($certificate->verification_token, 0, 8) }}...
+    </div>
+</div>
+@endif
 
 </body>
 </html>

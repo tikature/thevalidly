@@ -6,6 +6,7 @@ use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateBatchController;
+use App\Http\Controllers\CertificateVerificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,7 +15,7 @@ use App\Http\Controllers\CertificateBatchController;
 */
 Route::get('/', fn() => view('landing'))->name('landing');
 
-// Verifikasi sertifikat (publik, NO download)
+// Verifikasi sertifikat — halaman web publik (NO download)
 Route::get('/verify/{token}', [CertificateController::class, 'verify'])->name('certificate.verify');
 
 // Halaman peserta publik (ADA download PDF)
@@ -22,6 +23,20 @@ Route::get('/cert/{token}', [CertificateController::class, 'participant'])->name
 
 // Halaman batch publik
 Route::get('/batch/{batch_token}', [CertificateBatchController::class, 'show'])->name('certificate.batch.show');
+
+/*
+|--------------------------------------------------------------------------
+| API Publik — Verifikasi QR Code (Iterasi 4)
+|
+| Endpoint ini dipanggil ketika seseorang scan QR code yang tercetak
+| di sudut kiri bawah PDF sertifikat. Mengembalikan JSON berisi data
+| sertifikat beserta status validitasnya.
+|
+| Contoh URL QR: https://validly.app/api/verify/{uuid}
+|--------------------------------------------------------------------------
+*/
+Route::get('/api/verify/{token}', [CertificateVerificationController::class, 'apiVerify'])
+    ->name('certificate.verify.api');
 
 /*
 |--------------------------------------------------------------------------

@@ -256,4 +256,26 @@ class CertificateControllerTest extends TestCase
         $this->assertStringNotContainsString('\\', $result);
         $this->assertStringContainsString('institutions/1/logo/test.png', $result);
     }
+    #[Test]
+    public function pdf_generates_qr_code_if_missing_before_render(): void
+    {
+        $cert = Certificate::factory()->create([
+            'institution_id' => $this->institution->id,
+        ]);
+
+        // Paksa null setelah create, bypass model event
+        Certificate::withoutEvents(function () use ($cert) {
+            $cert->update(['qr_code' => null]);
+        });
+
+        $this->assertNull($cert->fresh()->qr_code);
+
+        $this->actingAs($this->admin)
+            ->get(route('certificate.pdf', $cert->verification_token))
+            ->assertStatus(200)
+            ->assertHeader('Content-Type', 'application/pdf');
+
+        $this->assertNotNull($cert->fresh()->qr_code);
+        $this->assertStringStartsWith('data:image/png;base64,', $cert->fresh()->qr_code);
+    }
 }

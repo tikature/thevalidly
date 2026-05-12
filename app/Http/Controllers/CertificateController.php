@@ -35,6 +35,7 @@ class CertificateController extends Controller
             'institution_id' => auth()->user()->institution_id,
             'issued_by'      => auth()->id(),
         ]);
+        // QR code di-generate otomatis via model event `created`
 
         return response()->json([
             'success'            => true,
@@ -76,6 +77,7 @@ class CertificateController extends Controller
                 'signer_name'    => $request->signer_name,
                 'signer_title'   => $request->signer_title,
             ]);
+            // QR code di-generate otomatis via model event `created`
 
             $certificates[] = [
                 'nama'               => $cert->nama,
@@ -150,6 +152,12 @@ class CertificateController extends Controller
 
     private function buildPdf(Certificate $certificate, $institution)
     {
+        // Pastikan QR code sudah ada sebelum render PDF
+        if (empty($certificate->qr_code)) {
+            $certificate->generateAndSaveQrCode();
+            $certificate->refresh();
+        }
+
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('certificate.pdf', [
             'certificate' => $certificate,
             'institution' => $institution,

@@ -123,7 +123,7 @@
                     <span><i class="bi bi-telephone"></i>{{ $inst->phone }}</span>
                 @endif
                 @if($inst->address)
-                    <span><i class="bi bi-geo-alt"></i>{{ Str::limit($inst->address, 40) }}</span>
+                    <span><i class="bi bi-geo-alt"></i>{{ mb_strimwidth($inst->address, 0, 40, '...') }}</span>
                 @endif
                 <span><i class="bi bi-people"></i>{{ $inst->users_count }} Admin</span>
                 <span class="text-muted"><i class="bi bi-calendar"></i>{{ $inst->created_at->format('d M Y') }}</span>
