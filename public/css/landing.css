@@ -20,7 +20,7 @@ body {
     padding: 16px 0;
 }
 .navbar-brand-text {
-    font-family: "Playfair Display", serif;
+    font-family:'Playfair Display',serif;
     font-size: 1.4rem;
     color: var(--gold-light) !important;
     letter-spacing: 1px;
