@@ -292,7 +292,11 @@ class CertificateController extends Controller
     {
         $certificate = Certificate::where('verification_token', $token)
             ->with('institution')
-            ->firstOrFail();
+            ->first();
+
+        if (! $certificate) {
+            return response()->view('certificate.participant-invalid', [], 200);
+        }
 
         return view('certificate.participant', compact('certificate'));
     }
