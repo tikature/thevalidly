@@ -136,7 +136,7 @@
             <a href="{{ route('landing') }}" class="btn-home">
                 <i class="bi bi-house"></i> Beranda
             </a>
-            <a href="https://thevalidly.com/#verifikasi" class="btn-retry">
+            <a href="/#verifikasi" class="btn-retry">
                 <i class="bi bi-arrow-counterclockwise"></i> Coba Lagi
             </a>
         </div>
