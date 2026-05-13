@@ -12,14 +12,19 @@ class User extends Authenticatable
     use Notifiable, HasFactory;
 
     protected $fillable = [
-        'name', 'email', 'password', 'role', 'institution_id', 'is_active'
+        'name', 'email', 'password', 'plain_password', 'role', 'institution_id', 'is_active',
     ];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = [
+        'password', 'remember_token',
+        // plain_password sengaja tidak dimasukkan $hidden
+        // agar bisa dibaca Super Admin di panel
+    ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'password'  => 'hashed',
+        // plain_password sengaja tidak di-cast 'hashed'
     ];
 
     // Helper: cek apakah user adalah super admin

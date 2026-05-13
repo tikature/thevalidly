@@ -18,7 +18,44 @@ class SuperAdminController extends Controller
             ->latest()
             ->get();
 
-        return view('superadmin.index', compact('institutions'));
+        $superAdmins = User::where('role', 'super_admin')
+            ->latest()
+            ->get();
+
+        return view('superadmin.index', compact('institutions', 'superAdmins'));
+    }
+
+    // ─── Tambah Super Admin ────────────────────────────────────
+
+    public function storeSuperAdmin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'superadmin_name'     => 'required|string|max:255',
+            'superadmin_email'    => 'required|email|unique:users,email',
+            'superadmin_password' => 'required|min:8',
+        ], [
+            'superadmin_email.unique' => 'Email ini sudah digunakan oleh akun lain.',
+            'superadmin_password.min' => 'Password minimal 8 karakter.',
+        ], [
+            'superadmin_name'     => 'nama',
+            'superadmin_email'    => 'email',
+            'superadmin_password' => 'password',
+        ]);
+
+        if ($validator->fails()) {
+            return back()->withErrors($validator, 'addSuperAdmin')->withInput();
+        }
+
+        User::create([
+            'name'           => $request->superadmin_name,
+            'email'          => $request->superadmin_email,
+            'password'       => Hash::make($request->superadmin_password),
+            'plain_password' => $request->superadmin_password,
+            'role'           => 'super_admin',
+            'institution_id' => null,
+        ]);
+
+        return back()->with('success', 'Super Admin baru berhasil ditambahkan.');
     }
 
     // ─── Tambah Lembaga ────────────────────────────────────────
@@ -63,6 +100,7 @@ class SuperAdminController extends Controller
             'name'           => $request->admin_name,
             'email'          => $request->admin_email,
             'password'       => Hash::make($request->admin_password),
+            'plain_password' => $request->admin_password,
             'role'           => 'admin',
             'institution_id' => $institution->id,
         ]);
@@ -138,6 +176,7 @@ class SuperAdminController extends Controller
             'name'           => $request->admin_name,
             'email'          => $request->admin_email,
             'password'       => Hash::make($request->admin_password),
+            'plain_password' => $request->admin_password,
             'role'           => 'admin',
             'institution_id' => $institution->id,
         ]);
@@ -176,7 +215,8 @@ class SuperAdminController extends Controller
         ];
 
         if (!empty($request->admin_password)) {
-            $data['password'] = Hash::make($request->admin_password);
+            $data['password']       = Hash::make($request->admin_password);
+            $data['plain_password'] = $request->admin_password;
         }
 
         $user->update($data);
@@ -184,7 +224,7 @@ class SuperAdminController extends Controller
         return back()->with('success', "Admin \"{$user->name}\" berhasil diperbarui.");
     }
 
-    // ─── Logic Lainnya (Toggle & Destroy tetap sama) ──────────
+    // ─── Toggle & Destroy ──────────────────────────────────────
 
     public function toggleInstitution(Institution $institution)
     {
@@ -206,5 +246,16 @@ class SuperAdminController extends Controller
     {
         $user->delete();
         return back()->with('success', 'Akun admin berhasil dihapus.');
+    }
+
+    public function destroySuperAdmin(User $user)
+    {
+        // Cegah super admin menghapus dirinya sendiri
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        $user->delete();
+        return back()->with('success', 'Akun Super Admin berhasil dihapus.');
     }
 }
