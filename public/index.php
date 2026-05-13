@@ -1,6 +1,6 @@
-ini_set('max_execution_time', 500);
-
 <?php
+
+ini_set('max_execution_time', 500);
 
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
