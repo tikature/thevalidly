@@ -41,7 +41,8 @@ class CertificateShowLinkedInTest extends TestCase
             'perusahaan'     => 'pt. maju bersama',
             'nomor'          => 'CERT/001/2026',
             'event_name'     => 'pelatihan keselamatan kerja',
-            'event_date'     => '10 Mei 2026',
+            'date_start'     => '2026-05-10',
+            'date_end'       => null,
             'event_place'    => 'jakarta selatan',
             'signer_name'    => 'dr. ahmad fauzi',
             'signer_title'   => 'direktur lembaga',
@@ -254,14 +255,14 @@ class CertificateShowLinkedInTest extends TestCase
     public function linkedin_description_contains_event_date(): void
     {
         $this->get(route('certificate.participant', $this->certificate->verification_token))
-            ->assertSee('10 Mei 2026');
+            ->assertSee('10 May 2026');
     }
 
     #[Test]
     public function linkedin_description_contains_event_date_and_place_when_both_present(): void
     {
         $this->get(route('certificate.participant', $this->certificate->verification_token))
-            ->assertSee('10 Mei 2026')
+            ->assertSee('10 May 2026')
             ->assertSee('Jakarta Selatan');
     }
 }

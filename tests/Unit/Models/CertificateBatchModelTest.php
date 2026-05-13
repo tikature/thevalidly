@@ -306,6 +306,32 @@ class CertificateBatchModelTest extends TestCase
     }
 
     #[Test]
+    public function date_start_is_cast_to_carbon_date(): void
+    {
+        $batch = CertificateBatch::factory()->create([
+            'institution_id' => $this->institution->id,
+            'date_start'     => '2025-06-30',
+            'date_end'       => '2025-07-01',
+        ]);
+
+        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $batch->fresh()->date_start);
+        $this->assertInstanceOf(\Illuminate\Support\Carbon::class, $batch->fresh()->date_end);
+        $this->assertEquals('2025-06-30', $batch->fresh()->date_start->format('Y-m-d'));
+        $this->assertEquals('2025-07-01', $batch->fresh()->date_end->format('Y-m-d'));
+    }
+
+    #[Test]
+    public function date_end_is_null_for_single_day_event(): void
+    {
+        $batch = CertificateBatch::factory()->create([
+            'institution_id' => $this->institution->id,
+            'date_end'       => null,
+        ]);
+
+        $this->assertNull($batch->fresh()->date_end);
+    }
+
+    #[Test]
     public function finished_at_is_null_when_not_done(): void
     {
         $batch = CertificateBatch::factory()->create([

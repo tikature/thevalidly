@@ -63,7 +63,7 @@ class CertificateBulkPregenerateTest extends TestCase
         $this->actingAs($this->admin)
             ->postJson(route('certificate.storeBulk'), [
                 'event_name' => 'Test',
-                'event_date' => '2026-01-01',
+                'date_start'   => '2026-01-01',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['participants']);
@@ -76,7 +76,7 @@ class CertificateBulkPregenerateTest extends TestCase
             ->postJson(route('certificate.storeBulk'), [
                 'participants' => [['nomor' => 'X']],
                 'event_name'   => 'Test',
-                'event_date'   => '2026-01-01',
+                'date_start'   => '2026-01-01',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['participants.0.nama']);
@@ -93,7 +93,7 @@ class CertificateBulkPregenerateTest extends TestCase
                     ['nama' => 'Peserta C', 'nomor' => 'CERT/003/2026', 'perusahaan' => 'PT C'],
                 ],
                 'event_name'  => 'Workshop Sinkron',
-                'event_date'  => '15 Mei 2026',
+                'date_start'   => '2026-01-01',
                 'event_place' => 'Bandung',
             ])
             ->assertOk()
@@ -113,7 +113,7 @@ class CertificateBulkPregenerateTest extends TestCase
                     ['nama' => 'Peserta X', 'nomor' => 'CERT/001/2026'],
                 ],
                 'event_name' => 'Test',
-                'event_date' => '2026-01-01',
+                'date_start'   => '2026-01-01',
             ])
             ->assertOk();
 
@@ -130,7 +130,7 @@ class CertificateBulkPregenerateTest extends TestCase
                     ['nama' => 'Peserta Y', 'nomor' => 'CERT/001/2026'],
                 ],
                 'event_name' => 'Test',
-                'event_date' => '2026-01-01',
+                'date_start'   => '2026-01-01',
             ])
             ->assertOk()
             ->assertJsonStructure([
@@ -150,7 +150,7 @@ class CertificateBulkPregenerateTest extends TestCase
                     ['nama' => 'B', 'nomor' => 'CERT/002'],
                 ],
                 'event_name'   => 'Seminar Bersama',
-                'event_date'   => '20 Juni 2026',
+                'date_start'   => '2026-01-01',
                 'signer_name'  => 'Dr. Fulan',
                 'signer_title' => 'Direktur',
             ])
@@ -158,7 +158,7 @@ class CertificateBulkPregenerateTest extends TestCase
 
         Certificate::all()->each(function ($cert) {
             $this->assertEquals('Seminar Bersama', $cert->event_name);
-            $this->assertEquals('20 Juni 2026',    $cert->event_date);
+            $this->assertEquals('2026-01-01',       $cert->date_start?->format('Y-m-d'));
             $this->assertEquals('Dr. Fulan',        $cert->signer_name);
             $this->assertEquals('Direktur',          $cert->signer_title);
         });
@@ -175,7 +175,7 @@ class CertificateBulkPregenerateTest extends TestCase
                     ['nama' => 'P3', 'nomor' => 'CERT/003'],
                 ],
                 'event_name' => 'Test Unique Token',
-                'event_date' => '2026-01-01',
+                'date_start'   => '2026-01-01',
             ])
             ->assertOk();
 
@@ -189,7 +189,7 @@ class CertificateBulkPregenerateTest extends TestCase
         $this->actingAs($this->admin)
             ->postJson(route('certificate.storeBulk'), [
                 'participants' => [['nama' => 'P1', 'nomor' => 'X']],
-                'event_date'   => '2026-01-01',
+                'date_start'   => '2026-01-01',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['event_name']);

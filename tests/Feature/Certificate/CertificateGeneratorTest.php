@@ -82,7 +82,8 @@ class CertificateGeneratorTest extends TestCase
                 'perusahaan'  => 'PT Test',
                 'nomor'       => 'CERT/001/2026',
                 'event_name'  => 'Pelatihan Test',
-                'event_date'  => 'Held on 01-01-26 at Purwokerto',
+                'date_start'  => '2026-01-01',
+                'date_end'    => null,
                 'event_place' => 'Purwokerto',
                 'signer_name' => 'Dr. Test',
                 'signer_title'=> 'Ketua',
@@ -104,14 +105,14 @@ class CertificateGeneratorTest extends TestCase
         $this->actingAs($this->admin)
             ->postJson(route('certificate.store'), [])
             ->assertStatus(422)
-            ->assertJsonValidationErrors(['nama', 'nomor', 'event_name', 'event_date']);
+            ->assertJsonValidationErrors(['nama', 'nomor', 'event_name', 'date_start']);
     }
 
     #[Test]
     public function store_response_contains_pdf_url(): void
     {
         $res = $this->actingAs($this->admin)->postJson(route('certificate.store'), [
-            'nama' => 'Test', 'nomor' => 'X', 'event_name' => 'E', 'event_date' => 'D',
+            'nama' => 'Test', 'nomor' => 'X', 'event_name' => 'E', 'date_start' => '2026-01-01',
         ]);
         $this->assertStringContainsString('/pdf', $res->json('pdf_url'));
     }
@@ -120,10 +121,10 @@ class CertificateGeneratorTest extends TestCase
     public function certificate_has_unique_verification_token(): void
     {
         $this->actingAs($this->admin)->postJson(route('certificate.store'), [
-            'nama' => 'A', 'nomor' => 'A1', 'event_name' => 'E', 'event_date' => 'D',
+            'nama' => 'A', 'nomor' => 'A1', 'event_name' => 'E', 'date_start' => '2026-01-01',
         ]);
         $this->actingAs($this->admin)->postJson(route('certificate.store'), [
-            'nama' => 'B', 'nomor' => 'B1', 'event_name' => 'E', 'event_date' => 'D',
+            'nama' => 'B', 'nomor' => 'B1', 'event_name' => 'E', 'date_start' => '2026-01-01',
         ]);
         $this->assertCount(2, array_unique(Certificate::pluck('verification_token')->toArray()));
     }
@@ -132,7 +133,7 @@ class CertificateGeneratorTest extends TestCase
     public function cert_desc_max_200_characters(): void
     {
         $this->actingAs($this->admin)->postJson(route('certificate.store'), [
-            'nama' => 'Test', 'nomor' => 'X', 'event_name' => 'E', 'event_date' => 'D',
+            'nama' => 'Test', 'nomor' => 'X', 'event_name' => 'E', 'date_start' => '2026-01-01',
             'cert_desc' => str_repeat('A', 201),
         ])->assertStatus(422)->assertJsonValidationErrors(['cert_desc']);
     }
@@ -141,7 +142,7 @@ class CertificateGeneratorTest extends TestCase
     public function guest_cannot_store_certificate(): void
     {
         $this->postJson(route('certificate.store'), [
-            'nama' => 'Test', 'nomor' => 'X', 'event_name' => 'E', 'event_date' => 'D',
+            'nama' => 'Test', 'nomor' => 'X', 'event_name' => 'E', 'date_start' => '2026-01-01',
         ])->assertUnauthorized();
     }
 
