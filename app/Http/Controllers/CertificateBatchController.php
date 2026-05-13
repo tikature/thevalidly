@@ -223,7 +223,7 @@ class CertificateBatchController extends Controller
 
     public function downloadZip(string $token)
     {
-        set_time_limit(120);
+        set_time_limit(300);
         ini_set('memory_limit', '256M');
 
         $batch = CertificateBatch::where('batch_token', $token)

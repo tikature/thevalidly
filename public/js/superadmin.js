@@ -32,8 +32,6 @@ function showToast(message, type = "error") {
     `;
 
     wrap.appendChild(toast);
-
-    // Auto close 5 detik
     setTimeout(() => closeToast(toast), 5000);
 }
 
@@ -43,7 +41,7 @@ function closeToast(el) {
     setTimeout(() => el.remove(), 200);
 }
 
-// ── Toggle password visibility
+// ══ TOGGLE PASSWORD VISIBILITY ════════════════════════════════════════
 function togglePw(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector("i");
@@ -56,10 +54,10 @@ function togglePw(inputId, btn) {
     }
 }
 
-// ── Modal edit lembaga — isi form saat buka
+// ══ MODAL: Edit Lembaga ───────────────────────────────────────────────
 document
     .getElementById("modalEditLembaga")
-    .addEventListener("show.bs.modal", function (e) {
+    ?.addEventListener("show.bs.modal", function (e) {
         const btn = e.relatedTarget;
         if (!btn) return;
         document.getElementById("editInstName").value = btn.dataset.name || "";
@@ -73,33 +71,85 @@ document
             `/superadmin/institutions/${btn.dataset.id}`;
     });
 
-// ── Modal edit admin — isi form saat buka
+// ══ MODAL: Edit Admin ─────────────────────────────────────────────────
 document
     .getElementById("modalEditAdmin")
-    .addEventListener("show.bs.modal", function (e) {
+    ?.addEventListener("show.bs.modal", function (e) {
         const btn = e.relatedTarget;
         if (!btn) return;
+
+        // Isi field nama & email
         document.getElementById("editAdminName").value = btn.dataset.name || "";
         document.getElementById("editAdminEmail").value =
             btn.dataset.email || "";
+
+        // Kosongkan field reset password
+        document.getElementById("pwEditAdmin").value = "";
+
+        // Set action URL
         document.getElementById("formEditAdmin").action =
             `/superadmin/admins/${btn.dataset.id}`;
+
+        // ── Lihat password saat ini ──────────────────────────
+        const currentPwInput = document.getElementById("currentAdminPw");
+        const currentPwNote = document.getElementById("currentPwNote");
+        const plainPw = btn.dataset.plainPassword ?? "";
+
+        if (plainPw) {
+            currentPwInput.value = plainPw;
+            currentPwInput.style.opacity = "1";
+            currentPwNote.textContent =
+                "Password yang tersimpan saat akun dibuat atau terakhir direset.";
+        } else {
+            currentPwInput.value = "••••••••";
+            currentPwInput.style.opacity = "0.45";
+            currentPwNote.textContent =
+                "Password tidak tersedia — akun ini dibuat sebelum fitur ini ada.";
+        }
+
+        // Pastikan field current pw kembali ke type password saat modal dibuka ulang
+        currentPwInput.type = "password";
+        const eyeBtn = currentPwInput.nextElementSibling;
+        if (eyeBtn) eyeBtn.querySelector("i").className = "bi bi-eye";
     });
 
-// ── Modal tambah admin — isi action saat buka
+// Reset field password saat modal edit admin ditutup
+document
+    .getElementById("modalEditAdmin")
+    ?.addEventListener("hidden.bs.modal", function () {
+        document.getElementById("pwEditAdmin").value = "";
+        document.getElementById("currentAdminPw").value = "";
+        document.getElementById("currentAdminPw").type = "password";
+    });
+
+// ══ MODAL: Tambah Admin ke Lembaga ───────────────────────────────────
 document
     .getElementById("modalAddAdmin")
-    .addEventListener("show.bs.modal", function (e) {
+    ?.addEventListener("show.bs.modal", function (e) {
         const btn = e.relatedTarget;
         if (!btn) return;
         document.getElementById("modalInstName").textContent =
             btn.getAttribute("data-inst-name");
-        const baseUrl = "{{ url('superadmin/institutions') }}";
+        const baseUrl = `${window.location.origin}/superadmin/institutions`;
         document.getElementById("formAddAdmin").action =
             `${baseUrl}/${btn.getAttribute("data-inst-id")}/admins`;
     });
 
-// ── Modal Konfirmasi Hapus
+// Reset form tambah admin saat modal ditutup
+document
+    .getElementById("modalAddAdmin")
+    ?.addEventListener("hidden.bs.modal", function () {
+        this.querySelector("form")?.reset();
+    });
+
+// ══ MODAL: Tambah Super Admin ─────────────────────────────────────────
+document
+    .getElementById("modalAddSuperAdmin")
+    ?.addEventListener("hidden.bs.modal", function () {
+        this.querySelector("form")?.reset();
+    });
+
+// ══ MODAL: Konfirmasi Hapus ───────────────────────────────────────────
 function confirmDelete(actionUrl, title, bodyHtml, btnLabel) {
     const modal = document.getElementById("modalConfirmDelete");
     const form = document.getElementById("formConfirmDelete");

@@ -23,19 +23,17 @@ class AdminCrudTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        // Buat Super Admin (Pastikan role sesuai middleware: super_admin)
+
         $this->superAdmin = User::factory()->create([
-            'role' => 'super_admin'
+            'role' => 'super_admin',
         ]);
 
         $this->institution = Institution::factory()->create();
-        
-        // Buat Admin existing untuk testing unique email
+
         $this->existingAdmin = User::factory()->create([
             'role'           => 'admin',
             'institution_id' => $this->institution->id,
-            'email'          => 'existing_admin@test.com'
+            'email'          => 'existing_admin@test.com',
         ]);
     }
 
@@ -61,13 +59,67 @@ class AdminCrudTest extends TestCase
         ]);
     }
 
-    // ─── VALIDASI CREATE ADMIN (DENGAN ERROR BAGS) ──────────────
+    #[Test]
+    public function plain_password_is_stored_when_admin_is_created(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->post(route('superadmin.admins.store', $this->institution), [
+                'admin_name'     => 'Admin Baru',
+                'admin_email'    => 'adminbaru@test.com',
+                'admin_password' => 'password123',
+            ]);
+
+        $this->assertDatabaseHas('users', [
+            'email'          => 'adminbaru@test.com',
+            'plain_password' => 'password123',
+        ]);
+    }
+
+    #[Test]
+    public function plain_password_is_updated_when_admin_password_is_reset(): void
+    {
+        $this->actingAs($this->superAdmin)
+            ->patch(route('superadmin.admins.update', $this->existingAdmin), [
+                'admin_name'     => $this->existingAdmin->name,
+                'admin_email'    => $this->existingAdmin->email,
+                'admin_password' => 'newpassword456',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('users', [
+            'id'             => $this->existingAdmin->id,
+            'plain_password' => 'newpassword456',
+        ]);
+    }
+
+    #[Test]
+    public function plain_password_is_not_changed_when_password_field_is_empty(): void
+    {
+        // Set plain_password awal
+        $this->existingAdmin->update(['plain_password' => 'oldpassword']);
+
+        $this->actingAs($this->superAdmin)
+            ->patch(route('superadmin.admins.update', $this->existingAdmin), [
+                'admin_name'     => 'Nama Baru',
+                'admin_email'    => $this->existingAdmin->email,
+                'admin_password' => '', // tidak diisi
+            ]);
+
+        // plain_password tidak boleh berubah
+        $this->assertDatabaseHas('users', [
+            'id'             => $this->existingAdmin->id,
+            'plain_password' => 'oldpassword',
+        ]);
+    }
+
+    // ─── VALIDASI CREATE ADMIN ──────────────────────────────────
 
     #[Test]
     public function admin_name_is_required(): void
     {
         $this->actingAs($this->superAdmin)
-            ->from(route('superadmin.index')) // Harus ada agar back() berfungsi
+            ->from(route('superadmin.index'))
             ->post(route('superadmin.admins.store', $this->institution), [
                 'admin_name'     => '',
                 'admin_email'    => 'admin@test.com',
@@ -136,7 +188,7 @@ class AdminCrudTest extends TestCase
             ->post(route('superadmin.admins.store', $this->institution), [
                 'admin_name'     => 'Admin',
                 'admin_email'    => 'admin@test.com',
-                'admin_password' => '1234567', // 7 karakter
+                'admin_password' => '1234567',
             ])
             ->assertSessionHasErrors(['admin_password'], null, 'addAdmin');
     }
@@ -159,13 +211,13 @@ class AdminCrudTest extends TestCase
     #[Test]
     public function regular_admin_cannot_add_admin_to_any_institution(): void
     {
-        $this->actingAs($this->existingAdmin) // Login sebagai admin biasa
+        $this->actingAs($this->existingAdmin)
             ->post(route('superadmin.admins.store', $this->institution), [
                 'admin_name'     => 'Penyusup',
                 'admin_email'    => 'penyusup@test.com',
                 'admin_password' => 'password123',
             ])
-            ->assertForbidden(); // Harus 403 karena middleware super_admin
+            ->assertForbidden();
     }
 
     #[Test]

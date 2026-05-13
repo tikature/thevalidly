@@ -104,4 +104,7 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->group(fun
     Route::post('/institutions/{institution}/admins',  [SuperAdminController::class, 'storeAdmin'])->name('superadmin.admins.store');
     Route::patch('/admins/{user}',                     [SuperAdminController::class, 'updateAdmin'])->name('superadmin.admins.update');
     Route::delete('/admins/{user}',                    [SuperAdminController::class, 'destroyAdmin'])->name('superadmin.admins.destroy');
+    
+    Route::post('/superadmins',          [SuperAdminController::class, 'storeSuperAdmin'])->name('superadmin.superadmins.store');
+    Route::delete('/superadmins/{user}', [SuperAdminController::class, 'destroySuperAdmin'])->name('superadmin.superadmins.destroy');
 });
