@@ -166,7 +166,7 @@
             </div>
             <div class="cert-meta-item">
                 <div class="cert-field-label">Tanggal Pelaksanaan</div>
-                <div class="cert-field-value">{{ $certificate->event_date }}</div>
+                <div class="cert-field-value">{{ $certificate->date_start ? $certificate->date_start->format('d M Y') : '-' }}{{ $certificate->date_end && $certificate->date_end->ne($certificate->date_start) ? ' – '.$certificate->date_end->format('d M Y') : '' }}</div>
             </div>
         </div>
 

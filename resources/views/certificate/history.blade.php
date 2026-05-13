@@ -133,7 +133,7 @@
                         </td>
                         {{-- Tanggal Acara --}}
                         <td class="py-3" style="color:#6b7280;white-space:nowrap;font-size:.85rem">
-                            {{ $cert->event_date }}
+                            {{ $cert->date_start ? $cert->date_start->format('d M Y') : '-' }}{{ $cert->date_end && $cert->date_end->ne($cert->date_start) ? ' – '.$cert->date_end->format('d M Y') : '' }}
                         </td>
                         {{-- Nama Acara --}}
                         <td class="py-3" style="max-width:200px">

@@ -638,15 +638,49 @@ function updatePerfEstimate(count) {
 }
 
 // ════ TANGGAL ════
-function fmtDate(d) { if(!d)return''; const dt=new Date(d+'T00:00:00'); return String(dt.getDate()).padStart(2,'0')+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getFullYear()).slice(2); }
-function getDateLine() {
-    const place=(document.getElementById('eventPlace').value||'').trim();
-    const isMulti=document.getElementById('multiDayToggle').checked;
-    if(isMulti){const f=fmtDate(document.getElementById('dateFrom').value),t=fmtDate(document.getElementById('dateTo').value);const ds=(f&&t)?f+' until '+t:(f||t);return'Held on '+ds+(place?' at '+place:'');}
-    return'Held on '+fmtDate(document.getElementById('dateStart').value)+(place?' at '+place:'');
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function ordinal(n) { const s=['th','st','nd','rd']; const v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); }
+function fmtDateHuman(d) {
+    if(!d) return '';
+    const dt = new Date(d+'T00:00:00');
+    return MONTHS[dt.getMonth()] + ' ' + ordinal(dt.getDate()) + ', ' + dt.getFullYear();
+}
+function fmtDateShort(d) {
+    // Format ringkas untuk preview: "30 June 2025"
+    if(!d) return '';
+    const dt = new Date(d+'T00:00:00');
+    return ordinal(dt.getDate()) + ' ' + MONTHS[dt.getMonth()] + ' ' + dt.getFullYear();
+}
+function getDatePreviewText() {
+    const place = (document.getElementById('eventPlace').value||'').trim();
+    const isMulti = document.getElementById('multiDayToggle').checked;
+    if(isMulti){
+        const f=fmtDateShort(document.getElementById('dateFrom').value);
+        const t=fmtDateShort(document.getElementById('dateTo').value);
+        const ds=(f&&t)?f+' – '+t:(f||t||'');
+        if(!ds) return '';
+        return 'Held on '+ds+(place?' in '+place:'');
+    }
+    const s=fmtDateShort(document.getElementById('dateStart').value);
+    if(!s) return '';
+    return 'Held on '+s+(place?' in '+place:'');
+}
+function getDatePayload() {
+    // Kembalikan object terpisah — bukan satu string kalimat
+    const isMulti = document.getElementById('multiDayToggle').checked;
+    if(isMulti){
+        return {
+            date_start: document.getElementById('dateFrom').value,
+            date_end:   document.getElementById('dateTo').value,
+        };
+    }
+    return {
+        date_start: document.getElementById('dateStart').value,
+        date_end:   '',
+    };
 }
 function toggleMultiDay() { const m=document.getElementById('multiDayToggle').checked; document.getElementById('singleDayInput').classList.toggle('d-none',m); document.getElementById('multiDayInput').classList.toggle('d-none',!m); updateDatePreview(); }
-function updateDatePreview() { const t=getDateLine(),p=document.getElementById('datePreview'); if(t&&t!=='Held on '){p.textContent='📅 '+t;p.style.display='block';}else p.style.display='none'; }
+function updateDatePreview() { const t=getDatePreviewText(),p=document.getElementById('datePreview'); if(t){p.textContent='📅 '+t;p.style.display='block';}else p.style.display='none'; }
 document.getElementById('eventPlace').addEventListener('input', updateDatePreview);
 function updateDescCount(val) { document.getElementById('descCount').textContent=val.length+'/200'; }
 updateDescCount(document.getElementById('certDesc').value);
@@ -690,13 +724,15 @@ async function generateAll() {
 // ════ CORE GENERATE ════
 async function doGenerate(participants) {
     const csrf=document.querySelector('meta[name="csrf-token"]').content;
+    const datePayload = getDatePayload();
     const commonPayload={
-        event_name: document.getElementById('eventName').value.trim(),
-        event_date: getDateLine(),
+        event_name:  document.getElementById('eventName').value.trim(),
+        date_start:  datePayload.date_start,
+        date_end:    datePayload.date_end,
         event_place: document.getElementById('eventPlace').value.trim(),
         signer_name: toTitleCase(document.getElementById('signerName').value),
         signer_title: toTitleCase(document.getElementById('signerTitle').value),
-        cert_desc: document.getElementById('certDesc').value,
+        cert_desc:   document.getElementById('certDesc').value,
     };
 
     const grid=document.getElementById('certGrid');

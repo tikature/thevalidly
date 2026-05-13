@@ -127,7 +127,7 @@
                         </td>
                         {{-- Tanggal Acara --}}
                         <td class="py-3" style="color:#6b7280;white-space:nowrap;font-size:.85rem">
-                            {{ $batch->event_date }}
+                            {{ $batch->date_start ? $batch->date_start->format('d M Y') : '-' }}{{ $batch->date_end && $batch->date_end->ne($batch->date_start) ? ' – '.$batch->date_end->format('d M Y') : '' }}
                         </td>
                         {{-- Total --}}
                         <td class="py-3" style="text-align:center;font-weight:700;color:var(--navy)">
