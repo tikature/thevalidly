@@ -17,7 +17,8 @@ class CertificateBatch extends Model
         'issued_by',
         'event_name',
         'title',
-        'event_date',
+        'date_start',
+        'date_end',
         'event_place',
         'signer_name',
         'signer_title',
@@ -34,6 +35,8 @@ class CertificateBatch extends Model
 
     protected $casts = [
         'failed_entries' => 'array',
+        'date_start'     => 'date',
+        'date_end'       => 'date',
         'started_at'     => 'datetime',
         'finished_at'    => 'datetime',
     ];

@@ -14,13 +14,15 @@ class Certificate extends Model
 
     protected $fillable = [
         'institution_id', 'batch_id', 'issued_by', 'nama', 'perusahaan', 'nomor',
-        'event_name', 'event_date', 'event_place',
+        'event_name', 'date_start', 'date_end', 'event_place',
         'signer_name', 'signer_title', 'cert_desc',
         'verification_token', 'qr_code', 'issued_at',
     ];
 
     protected $casts = [
-        'issued_at' => 'datetime',
+        'issued_at'  => 'datetime',
+        'date_start' => 'date',
+        'date_end'   => 'date',
     ];
 
     protected static function booted(): void
