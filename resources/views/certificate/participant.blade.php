@@ -1,4 +1,11 @@
-@php use Illuminate\Support\Str; @endphp
+@php
+    use Illuminate\Support\Str;
+    $bulanId        = ['Januari','Februari','Maret','April','Mei','Juni',
+                       'Juli','Agustus','September','Oktober','November','Desember'];
+    $issueDateLabel = $certificate->issued_at->format('d') . ' '
+                    . $bulanId[$certificate->issued_at->format('n') - 1] . ' '
+                    . $certificate->issued_at->format('Y');
+@endphp
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -115,8 +122,7 @@
             position: fixed; inset: 0; z-index: 1050;
             background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
             display: flex; align-items: flex-start; justify-content: center;
-            padding: 20px;
-            overflow-y: auto; /* backdrop sendiri yang scroll */
+            padding: 20px; overflow-y: auto;
             opacity: 0; pointer-events: none;
             transition: opacity .25s ease;
         }
@@ -126,7 +132,7 @@
             padding: 28px; max-width: 480px; width: 100%;
             color: #111; transform: translateY(12px);
             transition: transform .25s ease;
-            margin: auto; /* vertikal center kalau konten pendek */
+            margin: auto;
         }
         .li-modal-backdrop.is-open .li-modal { transform: translateY(0); }
         .li-modal-header {
@@ -134,9 +140,7 @@
             margin-bottom: 18px;
         }
         .li-modal-header svg { width: 22px; height: 22px; fill: #0A66C2; flex-shrink: 0; }
-        .li-modal-header h5 {
-            font-size: 1rem; font-weight: 700; color: #0f1e3c; margin: 0;
-        }
+        .li-modal-header h5 { font-size: 1rem; font-weight: 700; color: #0f1e3c; margin: 0; }
         .li-field { margin-bottom: 14px; }
         .li-field label {
             display: block; font-size: .7rem; font-weight: 700;
@@ -146,8 +150,7 @@
         .li-field-value {
             background: #f8fafc; border: 1.5px solid #eef2f9;
             border-radius: 8px; padding: 9px 13px;
-            font-size: .875rem; font-weight: 600; color: #0f1e3c;
-            line-height: 1.5;
+            font-size: .875rem; font-weight: 600; color: #0f1e3c; line-height: 1.5;
         }
         .li-desc-value {
             background: #f8fafc; border: 1.5px solid #eef2f9;
@@ -155,9 +158,7 @@
             font-size: .82rem; color: #374151; line-height: 1.7;
             white-space: pre-line;
         }
-        .li-modal-actions {
-            display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;
-        }
+        .li-modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
         .li-btn-go {
             flex: 1; background: #0A66C2; color: #fff; border: none;
             border-radius: 9px; padding: 11px 20px; font-weight: 700;
@@ -172,9 +173,7 @@
             font-size: .875rem; cursor: pointer; transition: background .2s;
         }
         .li-btn-cancel:hover { background: #e2e8f0; }
-        .li-note {
-            font-size: .72rem; color: #9ca3af; margin-top: 12px; line-height: 1.6;
-        }
+        .li-note { font-size: .72rem; color: #9ca3af; margin-top: 12px; line-height: 1.6; }
 
         .verify-link { font-size:.75rem; color:#9ca3af; text-align:center; margin-top:14px; }
         .verify-link a { color:white; font-weight:600; text-decoration:none; }
@@ -218,17 +217,12 @@
 
         {{-- Action buttons --}}
         <div class="action-buttons">
-            {{-- Download --}}
             <button class="btn-download" id="btnDownload" onclick="downloadPdf(this)">
                 <i class="bi bi-file-earmark-pdf"></i> Download PDF
             </button>
-
-            {{-- Verifikasi --}}
             <a href="{{ $certificate->verificationUrl() }}" class="btn-verify" target="_blank">
                 <i class="bi bi-patch-check"></i> Verifikasi
             </a>
-
-            {{-- LinkedIn --}}
             <button class="btn-linkedin" onclick="openLinkedIn()">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M20.45 20.45h-3.554v-5.57c0-1.328-.024-3.037-1.85-3.037-1.851 0-2.135 1.445-2.135 2.938v5.669H9.356V9h3.413v1.561h.047c.476-.9 1.636-1.85 3.368-1.85 3.601 0 4.267 2.37 4.267 5.455v6.284zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.017H3.555V9h3.564v11.45zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
@@ -251,7 +245,7 @@
             @endif
             <div class="info-item">
                 <div class="info-label">Diterbitkan</div>
-                <div class="info-value">{{ $certificate->issued_at->format('d M Y') }}</div>
+                <div class="info-value">{{ $issueDateLabel }}</div>
             </div>
         </div>
 
@@ -366,7 +360,8 @@
         nomor:          '{{ addslashes($certificate->nomor) }}',
         issueYear:      {{ $certificate->issued_at->format('Y') }},
         issueMonth:     {{ $certificate->issued_at->format('n') }},
-        issueDateLabel: '{{ $certificate->issued_at->translatedFormat('F Y') }}',
+        issueDateLabel: '{{ $issueDateLabel }}',
+        eventDate:      '{{ addslashes($certificate->event_date ?? '') }}',
         verifyUrl:      '{{ $certificate->verificationUrl() }}',
         recipient:      '{{ addslashes(Str::title($certificate->nama)) }}',
         company:        '{{ addslashes(Str::title($certificate->perusahaan ?? '')) }}',
@@ -391,15 +386,17 @@
 
     // ── Template deskripsi ───────────────────────────────────────
     function buildDescription() {
-        // Baris pembuka
         let opening = `Baru saja menyelesaikan ${CERT.name} yang diselenggarakan oleh ${CERT.org}`;
-        if (CERT.eventPlace) {
-            opening += ` pada ${CERT.issueDateLabel} di ${CERT.eventPlace}.`;
+        if (CERT.eventDate && CERT.eventPlace) {
+            opening += ` pada ${CERT.eventDate} di ${CERT.eventPlace}.`;
+        } else if (CERT.eventDate) {
+            opening += ` pada ${CERT.eventDate}.`;
+        } else if (CERT.eventPlace) {
+            opening += ` di ${CERT.eventPlace} pada ${CERT.issueDateLabel}.`;
         } else {
             opening += ` pada ${CERT.issueDateLabel}.`;
         }
 
-        // Baris tengah — sebutkan perusahaan jika ada
         let middle = `Selama program ini, saya mendalami banyak insight baru yang sangat relevan untuk implementasi di industri saat ini`;
         if (CERT.company) {
             middle += `, khususnya untuk kolaborasi bersama ${CERT.company}.`;
@@ -407,7 +404,6 @@
             middle += `.`;
         }
 
-        // Ucapan terima kasih — sebutkan signer jika ada
         let thanks;
         if (CERT.signerName) {
             const signerFull = CERT.signerTitle
@@ -418,17 +414,16 @@
             thanks = `Terima kasih kepada ${CERT.org} dan seluruh tim panitia atas kesempatannya. Siap mengaplikasikan ilmu ini ke projek-projek mendatang!`;
         }
 
-        const lines = [
+        return [
             opening,
             ``,
             middle,
             ``,
             thanks,
             ``,
-            `Cek validasi sertifikat di sini: ${CERT.verifyUrl}`,
-        ];
-
-        return lines.join('\n');
+            `🔢 No. Sertifikat : ${CERT.nomor}`,
+            `✅ Cek validasi sertifikat di sini: ${CERT.verifyUrl}`,
+        ].join('\n');
     }
 
     // ── Modal ────────────────────────────────────────────────────
@@ -452,7 +447,6 @@
         if (e.target === document.getElementById('liModalBackdrop')) closeLinkedIn();
     }
 
-    // Tutup dengan Escape
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLinkedIn(); });
 
     // ── PDF preview & download ───────────────────────────────────
