@@ -24,7 +24,8 @@ class CertificateController extends Controller
             'nomor'        => 'required|string|max:100',
             'cert_desc'    => 'nullable|string|max:200',
             'event_name'   => 'required|string|max:255',
-            'event_date'   => 'required|string|max:100',
+            'date_start'   => 'required|date',
+            'date_end'     => 'nullable|date|after_or_equal:date_start',
             'event_place'  => 'nullable|string|max:255',
             'signer_name'  => 'nullable|string|max:255',
             'signer_title' => 'nullable|string|max:255',
@@ -53,7 +54,8 @@ class CertificateController extends Controller
             'participants.*.nomor'      => 'nullable|string|max:100',
             'participants.*.perusahaan' => 'nullable|string|max:255',
             'event_name'                => 'required|string|max:255',
-            'event_date'                => 'required|string|max:100',
+            'date_start'                => 'required|date',
+            'date_end'                  => 'nullable|date|after_or_equal:date_start',
             'event_place'               => 'nullable|string|max:255',
             'signer_name'               => 'nullable|string|max:255',
             'signer_title'              => 'nullable|string|max:255',
@@ -72,7 +74,8 @@ class CertificateController extends Controller
                 'nomor'          => $p['nomor'],
                 'cert_desc'      => $request->cert_desc,
                 'event_name'     => $request->event_name,
-                'event_date'     => $request->event_date,
+                'date_start'     => $request->date_start,
+                'date_end'       => $request->date_end ?: null,
                 'event_place'    => $request->event_place,
                 'signer_name'    => $request->signer_name,
                 'signer_title'   => $request->signer_title,
@@ -242,7 +245,7 @@ class CertificateController extends Controller
     {
         $institutionId = auth()->user()->institution_id;
         $sort          = $request->sort === 'asc' ? 'asc' : 'desc';
-        $sortBy        = $request->sort_by === 'event' ? 'event_date' : 'issued_at';
+        $sortBy        = $request->sort_by === 'event' ? 'date_start' : 'issued_at';
 
         $certificates = Certificate::forInstitution($institutionId)
             ->with('issuedBy')
@@ -258,7 +261,7 @@ class CertificateController extends Controller
     {
         $institutionId = auth()->user()->institution_id;
         $sort          = $request->sort === 'asc' ? 'asc' : 'desc';
-        $sortBy        = $request->sort_by === 'event' ? 'event_date' : 'started_at';
+        $sortBy        = $request->sort_by === 'event' ? 'date_start' : 'started_at';
 
         $batches = CertificateBatch::where('institution_id', $institutionId)
             ->with('issuedBy')
