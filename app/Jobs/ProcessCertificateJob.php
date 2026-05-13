@@ -67,7 +67,8 @@ class ProcessCertificateJob implements ShouldQueue
                 'signer_title'       => $this->batch->signer_title,
                 'event_place'        => $this->batch->event_place,
                 'event_name'         => $this->batch->event_name,
-                'event_date'         => $this->batch->event_date,
+                'date_start'         => $this->batch->date_start,
+                'date_end'           => $this->batch->date_end,
                 'verification_token' => (string) Str::uuid(),
             ]);
 
