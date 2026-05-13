@@ -45,7 +45,7 @@ class CertificateHistoryTest extends TestCase
                 'perusahaan' => 'PT. Maju Bersama',
                 'nomor'      => 'CERT/001/2026',
                 'event_name' => 'Pelatihan Laravel',
-                'event_date' => '22 April 2026',
+                'date_start'   => '2026-04-22',
             ])
             ->assertStatus(200)
             ->assertJsonStructure(['success', 'verification_token', 'verification_url']);
@@ -65,7 +65,7 @@ class CertificateHistoryTest extends TestCase
                 'nama'       => 'Budi Santoso',
                 'nomor'      => 'CERT/001/2026',
                 'event_name' => 'Pelatihan Laravel',
-                'event_date' => '22 April 2026',
+                'date_start'   => '2026-04-22',
             ]);
 
         $token = $response->json('verification_token');
@@ -81,7 +81,7 @@ class CertificateHistoryTest extends TestCase
                 'nama'       => 'Sari Dewi',
                 'nomor'      => 'CERT/002/2026',
                 'event_name' => 'Workshop PHP',
-                'event_date' => '22 April 2026',
+                'date_start'   => '2026-04-22',
             ])
             ->assertStatus(200);
 
@@ -97,7 +97,7 @@ class CertificateHistoryTest extends TestCase
                 'nama'       => 'Budi',
                 'nomor'      => 'CERT/001/2026',
                 'event_name' => 'Training',
-                'event_date' => '22 April 2026',
+                'date_start'   => '2026-04-22',
             ]);
 
         $cert = Certificate::first();
@@ -117,7 +117,7 @@ class CertificateHistoryTest extends TestCase
             ->post(route('certificate.storeBulk'), [
                 'participants' => $participants,
                 'event_name'   => 'Pelatihan Massal',
-                'event_date'   => '22 April 2026',
+                'date_start'   => '2026-04-22',
             ])
             ->assertStatus(200)
             ->assertJsonStructure(['success', 'count', 'certificates']);
@@ -141,7 +141,7 @@ class CertificateHistoryTest extends TestCase
             ->postJson(route('certificate.store'), [
                 'nomor'      => 'CERT/001/2026',
                 'event_name' => 'Training',
-                'event_date' => '22 April 2026',
+                'date_start'   => '2026-04-22',
             ])
             ->assertStatus(422)
             ->assertJsonValidationErrors('nama');

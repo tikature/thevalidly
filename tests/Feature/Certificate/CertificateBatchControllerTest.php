@@ -115,7 +115,7 @@ class CertificateBatchControllerTest extends TestCase
             ->postJson(route('certificate.batch.store'), [
                 'participants' => [],
                 'event_name'   => 'Test',
-                'event_date'   => '2026-01-01',
+                'date_start'   => '2026-07-01',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['participants']);
@@ -127,7 +127,7 @@ class CertificateBatchControllerTest extends TestCase
         $this->actingAs($this->user)
             ->postJson(route('certificate.batch.store'), [
                 'participants' => [['nama' => 'Budi', 'perusahaan' => null, 'nomor' => null]],
-                'event_date'   => '2026-01-01',
+                'date_start'   => '2026-07-01',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['event_name']);
@@ -140,7 +140,7 @@ class CertificateBatchControllerTest extends TestCase
             ->postJson(route('certificate.batch.store'), [
                 'participants' => [['perusahaan' => 'PT Test']],
                 'event_name'   => 'Test Event',
-                'event_date'   => '2026-01-01',
+                'date_start'   => '2026-07-01',
             ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors(['participants.0.nama']);
@@ -158,7 +158,7 @@ class CertificateBatchControllerTest extends TestCase
                     ['nama' => 'Citra Dewi',   'perusahaan' => null,   'nomor' => null],
                 ],
                 'event_name'  => 'Workshop Unit Test',
-                'event_date'  => '12 Mei 2026',
+                'date_start'   => '2026-07-01',
                 'event_place' => 'Jakarta',
                 'signer_name' => 'Dr. Test',
             ]);
@@ -190,7 +190,7 @@ class CertificateBatchControllerTest extends TestCase
             ->postJson(route('certificate.batch.store'), [
                 'participants' => $participants,
                 'event_name'   => 'Acara Besar',
-                'event_date'   => '2026-06-01',
+                'date_start'   => '2026-07-01',
             ])
             ->assertOk()
             ->assertJson(['total' => 5]);
@@ -666,7 +666,7 @@ class CertificateBatchControllerTest extends TestCase
             ->postJson(route('certificate.batch.store'), [
                 'participants' => [['nama' => 'Test User', 'perusahaan' => null, 'nomor' => null]],
                 'event_name'   => 'Test Event',
-                'event_date'   => '2026-01-01',
+                'date_start'   => '2026-07-01',
             ])
             ->assertOk();
 

@@ -43,7 +43,8 @@ class ProcessCertificateJobTest extends TestCase
             'institution_id' => $this->institution->id,
             'issued_by'      => $this->user->id,
             'event_name'     => 'Pelatihan Job Test',
-            'event_date'     => '12 Mei 2026',
+            'date_start'     => '2026-05-12',
+            'date_end'       => null,
             'signer_name'    => 'Dr. Uji',
             'signer_title'   => 'Ketua',
             'total'          => 1,
@@ -161,7 +162,10 @@ class ProcessCertificateJobTest extends TestCase
 
         $cert = Certificate::where('batch_id', $this->batch->id)->first();
         $this->assertEquals($this->batch->event_name, $cert->event_name);
-        $this->assertEquals($this->batch->event_date, $cert->event_date);
+        $this->assertEquals(
+            $this->batch->date_start?->format('Y-m-d'),
+            $cert->date_start?->format('Y-m-d')
+        );
         $this->assertEquals($this->batch->signer_name, $cert->signer_name);
         $this->assertEquals($this->batch->signer_title, $cert->signer_title);
     }

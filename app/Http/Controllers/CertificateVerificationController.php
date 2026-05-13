@@ -27,7 +27,7 @@ class CertificateVerificationController extends Controller
      * Response sukses (200):
      * {
      *   "valid": true,
-     *   "certificate": { nama, perusahaan, nomor, event_name, event_date,
+     *   "certificate": { nama, perusahaan, nomor, event_name, date_start, date_end,
      *                    event_place, institution, issued_at, verification_url }
      * }
      *
@@ -57,7 +57,8 @@ class CertificateVerificationController extends Controller
                 'perusahaan'       => $certificate->perusahaan,
                 'nomor'            => $certificate->nomor,
                 'event_name'       => $certificate->event_name,
-                'event_date'       => $certificate->event_date,
+                'date_start'       => $certificate->date_start?->format('Y-m-d'),
+                'date_end'         => $certificate->date_end?->format('Y-m-d'),
                 'event_place'      => $certificate->event_place,
                 'institution'      => $certificate->institution->name ?? '-',
                 'issued_at'        => $certificate->issued_at->format('d M Y'),

@@ -16,7 +16,8 @@ class CertificateBatchFactory extends Factory
         return [
             'institution_id' => Institution::factory(),
             'event_name'     => $this->faker->sentence(4),
-            'event_date'     => $this->faker->date('d M Y'),
+            'date_start'     => $this->faker->dateTimeBetween('-1 year', 'now')->format('Y-m-d'),
+            'date_end'       => null,
             'batch_token'    => (string) Str::uuid(),
             'total'          => 0,
             'processed'      => 0,

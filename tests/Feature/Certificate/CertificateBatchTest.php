@@ -57,7 +57,7 @@ class CertificateBatchTest extends TestCase
                     ['nama' => 'Sari Dewi',    'nomor' => 'CERT/002/2026'],
                 ],
                 'event_name' => 'Pelatihan Laravel',
-                'event_date' => 'Held on 22-04-26 at Purwokerto',
+                'date_start'   => '2026-04-22',
             ])
             ->assertStatus(200)
             ->assertJsonStructure(['batch_id', 'batch_token', 'total']);
@@ -82,7 +82,7 @@ class CertificateBatchTest extends TestCase
                     ['nama' => 'Agus',  'nomor' => 'CERT/003/2026'],
                 ],
                 'event_name' => 'Training',
-                'event_date' => 'Held on 22-04-26 at Jakarta',
+                'date_start'   => '2026-04-22',
             ]);
 
         Queue::assertPushed(ProcessCertificateJob::class, 3);
@@ -102,7 +102,7 @@ class CertificateBatchTest extends TestCase
             ->postJson(route('certificate.batch.store'), [
                 'participants' => $participants,
                 'event_name'   => 'Training',
-                'event_date'   => 'Held on 22-04-26 at Jakarta',
+                'date_start'   => '2026-04-22',
             ])
             ->assertStatus(422);
     }
@@ -116,14 +116,14 @@ class CertificateBatchTest extends TestCase
             ->postJson(route('certificate.batch.store'), [
                 'participants' => [['nama' => 'Budi', 'nomor' => 'CERT/001/2026']],
                 'event_name'   => 'Pelatihan Laravel',
-                'event_date'   => 'Held on 22-04-26 at Jakarta',
+                'date_start'   => '2026-04-22',
             ]);
 
         $this->actingAs($this->admin)
             ->postJson(route('certificate.batch.store'), [
                 'participants' => [['nama' => 'Sari', 'nomor' => 'CERT/002/2026']],
                 'event_name'   => 'Pelatihan Laravel',
-                'event_date'   => 'Held on 22-04-26 at Jakarta',
+                'date_start'   => '2026-04-22',
             ]);
 
         $this->assertDatabaseHas('certificate_batches', ['title' => 'Pelatihan Laravel - Batch 1']);

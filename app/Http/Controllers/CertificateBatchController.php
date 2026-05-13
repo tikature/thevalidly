@@ -22,7 +22,8 @@ class CertificateBatchController extends Controller
             'participants.*.perusahaan' => 'nullable|string|max:255',
             'participants.*.nomor'      => 'nullable|string|max:100',
             'event_name'                => 'required|string|max:255',
-            'event_date'                => 'required|string|max:100',
+            'date_start'                => 'required|date',
+            'date_end'                  => 'nullable|date|after_or_equal:date_start',
             'event_place'               => 'nullable|string|max:255',
             'signer_name'               => 'nullable|string|max:255',
             'signer_title'              => 'nullable|string|max:255',
@@ -37,7 +38,8 @@ class CertificateBatchController extends Controller
             'issued_by'      => auth()->id(),
             'event_name'     => trim($request->event_name),
             'title'          => CertificateBatch::generateTitle(trim($request->event_name), $institutionId),
-            'event_date'     => $request->event_date,
+            'date_start'     => $request->date_start,
+            'date_end'       => $request->date_end ?: null,
             'event_place'    => $request->event_place,
             'signer_name'    => $request->signer_name,
             'signer_title'   => $request->signer_title,
@@ -295,6 +297,7 @@ class CertificateBatchController extends Controller
             'Content-Type' => 'application/zip',
         ])->deleteFileAfterSend(true);
     }
+
 
     private function resolveAssetPath(?string $relativePath): string
     {

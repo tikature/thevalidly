@@ -139,13 +139,14 @@ body {
 /* Nama peserta */
 .participant {
     position: absolute;
-    top: 226px;
+    top: 230px;
     left: 120px;
     width: 600px;
     text-align: center;
-    font-size: 34px;
+    font-size: 30px;
     font-style: italic;
     font-family: DejaVu Serif, serif;
+    font-weight: bold;
     color: #111111;
     line-height: 1.1;
 }
@@ -275,16 +276,16 @@ body {
    ======================================== */
 .qr-block {
     position: absolute;
-    bottom: 14px;
-    right: 16px;
+    bottom: 35px;
+    right: 27px;
     z-index: 5;
     width: 90px;
     text-align: center;
 }
 
 .qr-block img {
-    width: 70px;
-    height: 70px;
+    width: 75px;
+    height: 75px;
     display: block;
     margin: 0 auto;
 }
@@ -388,8 +389,14 @@ body {
             {{ $certificate->cert_desc ?? 'Has Successfully Completed a Training Course on:' }}
         </div>
         <div class="event-name">{{ $certificate->event_name }}</div>
-        @if($certificate->event_date)
-        <div class="date-line">{{ $certificate->event_date }}</div>
+        @if($certificate->date_start)
+        <div class="date-line">
+            {{ \App\Helpers\DateHelper::buildEventDateString(
+                $certificate->date_start->format('Y-m-d'),
+                $certificate->date_end?->format('Y-m-d'),
+                $certificate->event_place ?: null
+            ) }}
+        </div>
         @endif
     </div>
 
@@ -424,10 +431,10 @@ body {
 @if($certificate->qr_code)
 <div class="qr-block">
     <img src="{{ $certificate->qr_code }}" alt="QR">
-    <div class="qr-label">
+    <!-- <div class="qr-label">
         <strong>Scan untuk verifikasi</strong>
         validly.app/verify/{{ substr($certificate->verification_token, 0, 8) }}...
-    </div>
+    </div> -->
 </div>
 @endif
 

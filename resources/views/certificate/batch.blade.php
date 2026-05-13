@@ -160,7 +160,7 @@
             {{ $batch->institution->name }}
         </div>
         <h1>{{ $batch->event_name }}</h1>
-        <p>{{ $batch->event_date }} &middot; {{ $batch->certificates->count() }} peserta</p>
+        <p>{{ $batch->date_start ? $batch->date_start->format('d M Y') : '-' }}{{ $batch->date_end && $batch->date_end->ne($batch->date_start) ? ' – '.$batch->date_end->format('d M Y') : '' }} &middot; {{ $batch->certificates->count() }} peserta</p>
     </div>
 </div>
 

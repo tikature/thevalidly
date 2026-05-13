@@ -237,10 +237,15 @@
                 <div class="info-label">Nomor Sertifikat</div>
                 <div class="info-value">{{ $certificate->nomor }}</div>
             </div>
-            @if($certificate->event_date)
+            @if($certificate->date_start)
             <div class="info-item">
                 <div class="info-label">Tanggal Pelaksanaan</div>
-                <div class="info-value">{{ $certificate->event_date }}</div>
+                <div class="info-value">
+                    {{ $certificate->date_start->format('d M Y') }}
+                    @if($certificate->date_end && $certificate->date_end->ne($certificate->date_start))
+                        – {{ $certificate->date_end->format('d M Y') }}
+                    @endif
+                </div>
             </div>
             @endif
             <div class="info-item">
@@ -361,7 +366,7 @@
         issueYear:      {{ $certificate->issued_at->format('Y') }},
         issueMonth:     {{ $certificate->issued_at->format('n') }},
         issueDateLabel: '{{ $issueDateLabel }}',
-        eventDate:      '{{ addslashes($certificate->event_date ?? '') }}',
+        eventDate:      '{{ $certificate->date_start ? addslashes($certificate->date_start->format('d M Y')) : '' }}',
         verifyUrl:      '{{ $certificate->verificationUrl() }}',
         recipient:      '{{ addslashes(Str::title($certificate->nama)) }}',
         company:        '{{ addslashes(Str::title($certificate->perusahaan ?? '')) }}',
