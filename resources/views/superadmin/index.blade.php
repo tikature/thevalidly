@@ -9,14 +9,12 @@
 @section('content')
 
 {{-- ══ TOAST NOTIFIKASI ══ --}}
-{{-- Muncul untuk success dan error validasi (email duplikat, dll) --}}
 <div id="toastWrap" style="
     position:fixed; top:24px; right:24px; z-index:9999;
     display:flex; flex-direction:column; gap:10px; pointer-events:none;
 "></div>
 
-
-{{-- Header --}}
+{{-- ══ HEADER ══ --}}
 <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
     <div>
         <h4 class="mb-0 fw-bold" style="color:var(--navy)">
@@ -24,14 +22,20 @@
         </h4>
         <small class="text-muted">Kelola seluruh akun lembaga di Validly</small>
     </div>
-    <button class="btn-add-lembaga" data-bs-toggle="modal" data-bs-target="#modalAddLembaga">
-        <i class="bi bi-plus-circle me-2"></i>Tambah Lembaga Baru
-    </button>
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="btn-add-lembaga" data-bs-toggle="modal" data-bs-target="#modalAddSuperAdmin"
+                style="background:#1a3260">
+            <i class="bi bi-shield-plus me-2"></i>Tambah Super Admin
+        </button>
+        <button class="btn-add-lembaga" data-bs-toggle="modal" data-bs-target="#modalAddLembaga">
+            <i class="bi bi-plus-circle me-2"></i>Tambah Lembaga Baru
+        </button>
+    </div>
 </div>
 
-{{-- STATISTIK --}}
+{{-- ══ STATISTIK ══ --}}
 <div class="row g-3 mb-4">
-    <div class="col-sm-4">
+    <div class="col-sm-3">
         <div class="stat-card">
             <div class="stat-icon navy">🏛</div>
             <div>
@@ -40,7 +44,7 @@
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
         <div class="stat-card">
             <div class="stat-icon green">✅</div>
             <div>
@@ -49,7 +53,7 @@
             </div>
         </div>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-3">
         <div class="stat-card">
             <div class="stat-icon gold">👤</div>
             <div>
@@ -58,9 +62,76 @@
             </div>
         </div>
     </div>
+    <div class="col-sm-3">
+        <div class="stat-card">
+            <div class="stat-icon" style="background:#eef2ff">🛡️</div>
+            <div>
+                <div class="stat-val">{{ $superAdmins->count() }}</div>
+                <div class="stat-lbl">Super Admin</div>
+            </div>
+        </div>
+    </div>
 </div>
 
-{{-- DAFTAR LEMBAGA --}}
+{{-- ══ DAFTAR SUPER ADMIN ══ --}}
+<div class="mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <span style="font-size:.8rem;font-weight:700;color:var(--navy-mid);letter-spacing:1px;text-transform:uppercase">
+            <i class="bi bi-shield-lock me-1"></i>Akun Super Admin
+        </span>
+    </div>
+
+    <div class="inst-card" style="padding:0;overflow:hidden">
+        @if($superAdmins->isEmpty())
+            <p class="text-muted p-4 mb-0" style="font-size:.85rem">
+                <i class="bi bi-info-circle me-1"></i>Belum ada super admin terdaftar.
+            </p>
+        @else
+            <ul class="admin-list mb-0" style="padding:12px">
+                @foreach($superAdmins as $sa)
+                <li class="admin-item">
+                    <div class="admin-item-info">
+                        <div class="admin-avatar" style="background:var(--navy-mid)">
+                            {{ strtoupper(substr($sa->name, 0, 2)) }}
+                        </div>
+                        <div>
+                            <div style="font-weight:600;color:var(--navy)">
+                                {{ $sa->name }}
+                                @if($sa->id === auth()->id())
+                                    <span style="font-size:.68rem;background:#eef2ff;color:var(--navy-mid);
+                                                 border-radius:5px;padding:2px 7px;font-weight:700;margin-left:6px">
+                                        Anda
+                                    </span>
+                                @endif
+                            </div>
+                            <div style="color:#9ca3af;font-size:.75rem">{{ $sa->email }}</div>
+                        </div>
+                    </div>
+                    @if($sa->id !== auth()->id())
+                        <button type="button" class="btn-sm-danger"
+                                onclick="confirmDelete(
+                                    '{{ route('superadmin.superadmins.destroy', $sa) }}',
+                                    'Hapus Super Admin',
+                                    'Apakah Anda yakin ingin menghapus akun super admin <strong>{{ addslashes($sa->name) }}</strong>? Tindakan ini tidak dapat dibatalkan.',
+                                    'Hapus Super Admin'
+                                )">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    @endif
+                </li>
+                @endforeach
+            </ul>
+        @endif
+    </div>
+</div>
+
+{{-- ══ DAFTAR LEMBAGA ══ --}}
+<div class="d-flex align-items-center mb-3">
+    <span style="font-size:.8rem;font-weight:700;color:var(--navy-mid);letter-spacing:1px;text-transform:uppercase">
+        <i class="bi bi-building me-1"></i>Daftar Lembaga
+    </span>
+</div>
+
 @if($institutions->isEmpty())
     <div class="empty-state">
         <div class="empty-icon">🏛</div>
@@ -88,8 +159,7 @@
                         {{ $inst->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                     </button>
                 </form>
-                {{-- Hapus lembaga --}}
-                {{-- Tombol edit lembaga --}}
+                {{-- Edit lembaga --}}
                 <button class="btn btn-sm me-1"
                         style="background:#f0f4ff;color:var(--navy-mid);border:none;border-radius:6px;font-size:.75rem;font-weight:600"
                         data-bs-toggle="modal"
@@ -102,7 +172,7 @@
                         title="Edit lembaga">
                     <i class="bi bi-pencil"></i>
                 </button>
-                {{-- Tombol hapus lembaga — trigger modal konfirmasi --}}
+                {{-- Hapus lembaga --}}
                 <button type="button" class="btn-sm-danger"
                         onclick="confirmDelete(
                             '{{ route('superadmin.institutions.destroy', $inst) }}',
@@ -131,7 +201,7 @@
 
             {{-- Daftar Admin --}}
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span style="font-size:0.78rem; font-weight:700; color:var(--navy-mid); letter-spacing:1px; text-transform:uppercase;">
+                <span style="font-size:.78rem;font-weight:700;color:var(--navy-mid);letter-spacing:1px;text-transform:uppercase">
                     <i class="bi bi-person-badge me-1"></i>Akun Admin
                 </span>
                 <button class="btn-sm-navy" data-bs-toggle="modal"
@@ -143,7 +213,7 @@
             </div>
 
             @if($inst->users->isEmpty())
-                <p class="text-muted" style="font-size:0.8rem">
+                <p class="text-muted" style="font-size:.8rem">
                     <i class="bi bi-info-circle me-1"></i>Belum ada akun admin.
                 </p>
             @else
@@ -155,11 +225,12 @@
                                 {{ strtoupper(substr($admin->name, 0, 2)) }}
                             </div>
                             <div>
-                                <div style="font-weight:600; color:var(--navy)">{{ $admin->name }}</div>
-                                <div style="color:#9ca3af; font-size:0.75rem">{{ $admin->email }}</div>
+                                <div style="font-weight:600;color:var(--navy)">{{ $admin->name }}</div>
+                                <div style="color:#9ca3af;font-size:.75rem">{{ $admin->email }}</div>
                             </div>
                         </div>
                         <div class="d-flex gap-1">
+                            {{-- Edit admin — kirim plain_password ke modal --}}
                             <button class="btn btn-sm"
                                     style="background:#f0f4ff;color:var(--navy-mid);border:none;border-radius:5px;font-size:.72rem"
                                     data-bs-toggle="modal"
@@ -167,9 +238,11 @@
                                     data-id="{{ $admin->id }}"
                                     data-name="{{ $admin->name }}"
                                     data-email="{{ $admin->email }}"
+                                    data-plain-password="{{ $admin->plain_password ?? '' }}"
                                     title="Edit admin">
                                 <i class="bi bi-pencil"></i>
                             </button>
+                            {{-- Hapus admin --}}
                             <button type="button" class="btn-sm-danger"
                                     onclick="confirmDelete(
                                         '{{ route('superadmin.admins.destroy', $admin) }}',
@@ -189,9 +262,10 @@
     @endforeach
 @endif
 
-{{-- ══════════ MODALS ══════════ --}}
+{{-- ══ MODALS ══ --}}
 @include('superadmin.modals.add-lembaga')
 @include('superadmin.modals.add-admin')
+@include('superadmin.modals.add-superadmin')
 @include('superadmin.modals.edit-lembaga')
 @include('superadmin.modals.edit-admin')
 @include('superadmin.modals.confirm-delete')
@@ -201,10 +275,12 @@
 @push('scripts')
 <script src="{{ asset('js/superadmin.js') }}"></script>
 <script>
-// ── Tampilkan toast dari server saat halaman load
 document.addEventListener('DOMContentLoaded', function () {
     @if(session('success'))
         showToast(@json(session('success')), 'success');
+    @endif
+    @if(session('error'))
+        showToast(@json(session('error')), 'error');
     @endif
 
     @if($errors->hasBag('addInstitution'))
@@ -218,6 +294,9 @@ document.addEventListener('DOMContentLoaded', function () {
     @endif
     @if($errors->hasBag('editAdmin'))
         showToast(@json($errors->getBag('editAdmin')->first()), 'error');
+    @endif
+    @if($errors->hasBag('addSuperAdmin'))
+        showToast(@json($errors->getBag('addSuperAdmin')->first()), 'error');
     @endif
 });
 </script>
