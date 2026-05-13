@@ -20,7 +20,7 @@ class ProcessCertificateJob implements ShouldQueue
 
     // Timeout diperbesar karena sekarang generate PDF juga di sini
     public int $tries   = 1;
-    public int $timeout = 120;
+    public int $timeout = 500;
 
     public function __construct(
         private readonly CertificateBatch $batch,
