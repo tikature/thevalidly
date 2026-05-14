@@ -24,6 +24,8 @@
     .img-upload-box p strong { color:var(--navy-mid); display:block; }
     .img-preview-container { width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
     .img-preview-container img { max-width:90%; max-height:90%; object-fit:contain; }
+    .img-preview-container.bg-preview { position:absolute; inset:0; margin:0; }
+    .img-preview-container.bg-preview img { width:100%; height:100%; max-width:none; max-height:none; object-fit:contain; border-radius:8px; }
     .upload-badge { position:absolute; top:6px; left:6px; background:#dcfce7; color:#16a34a; font-size:.6rem; padding:2px 6px; border-radius:10px; letter-spacing:1px; font-weight:700; }
     .btn-remove-img { position:absolute; top:4px; right:4px; width:20px; height:20px; border-radius:50%; background:#ef4444; color:#fff; border:none; font-size:13px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; z-index:10; font-weight:700; }
     .btn-remove-img:hover { background:#b91c1c; }
@@ -100,6 +102,24 @@
     .notif-msg li { margin-bottom:2px; }
     .notif-close { background:none; border:none; color:#9ca3af; font-size:1.1rem; cursor:pointer; padding:0; line-height:1; flex-shrink:0; }
     @keyframes notifIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+    /* ── Background Library ── */
+    .btn-bg-library { background:#f0f4ff; border:1.5px solid #a5b4fc; border-radius:8px; color:var(--navy-mid); font-size:.75rem; font-weight:700; padding:7px 12px; cursor:pointer; white-space:nowrap; transition:all .2s; }
+    .btn-bg-library:hover { background:var(--navy); border-color:var(--navy); color:var(--gold-light); }
+    .bg-lib-tab { background:none; border:none; padding:8px 18px; font-size:.82rem; font-weight:600; color:#9ca3af; cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:all .2s; }
+    .bg-lib-tab.active { color:var(--navy-mid); border-bottom-color:var(--gold); }
+    .bg-lib-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+    .bg-lib-item { border-radius:10px; overflow:hidden; cursor:pointer; border:2.5px solid transparent; transition:all .18s; position:relative; aspect-ratio:4/3; background:#f0f4ff; }
+    .bg-lib-item:hover { border-color:var(--navy-mid); transform:translateY(-2px); box-shadow:0 6px 18px rgba(15,30,60,.15); }
+    .bg-lib-item.selected { border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,175,55,.25); }
+    .bg-lib-item img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block; border-radius:8px; }
+    .bg-lib-item-name { position:absolute; bottom:0; left:0; right:0; background:linear-gradient(transparent,rgba(0,0,0,.65)); color:#fff; font-size:.65rem; font-weight:600; padding:14px 6px 5px; }
+    .bg-lib-item-del { position:absolute; top:4px; right:4px; background:rgba(239,68,68,.9); color:#fff; border:none; border-radius:50%; width:20px; height:20px; font-size:.7rem; cursor:pointer; display:none; align-items:center; justify-content:center; }
+    .bg-lib-item:hover .bg-lib-item-del { display:flex; }
+    .bg-lib-empty { grid-column:1/-1; text-align:center; color:#9ca3af; font-size:.82rem; padding:28px 0; }
+    .bg-lib-loading { grid-column:1/-1; text-align:center; color:#9ca3af; font-size:.82rem; padding:24px 0; }
+    .btn-bg-upload-lib { background:var(--navy); color:var(--gold-light); border:none; border-radius:8px; font-size:.75rem; font-weight:700; padding:7px 14px; cursor:pointer; transition:all .2s; }
+    .btn-bg-upload-lib:hover { background:var(--navy-mid); }
 </style>
 @endpush
 
@@ -216,14 +236,76 @@
         <div>
             <label class="form-label-sm">Background <span style="text-transform:none;letter-spacing:0;font-size:.68rem;color:#9ca3af;font-weight:400"> — opsional</span></label>
             <div class="d-flex align-items-center gap-3">
-                <div class="img-upload-box" style="min-height:70px;flex:1;padding:10px">
+                <div class="img-upload-box" style="min-height:70px;flex:1;padding:10px;position:relative">
                     <input type="file" accept=".jpg,.jpeg,.png" onchange="uploadAsset('background', this)" id="bgFileInput">
                     <div id="bgPreview"><div class="upload-icon" style="font-size:1.2rem">🖼</div><p><strong>Upload Background</strong>JPG / PNG, maks. 2MB</p></div>
                     <span class="upload-badge d-none" id="bgBadge">✓</span>
                 </div>
-                <button type="button" onclick="removeAsset('background')" id="btnRemoveBg" class="d-none btn-sm-danger-outline">
-                    <i class="bi bi-x-circle me-1"></i>Hapus
-                </button>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" onclick="openBgLibrary()" class="btn-bg-library">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Lainnya
+                    </button>
+                    <button type="button" onclick="removeAsset('background')" id="btnRemoveBg" class="d-none btn-sm-danger-outline">
+                        <i class="bi bi-x-circle me-1"></i>Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- ══ Modal Konfirmasi Hapus Background ══ --}}
+    <div id="bgDeleteModal" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(10,20,50,.6);align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:14px;width:min(380px,92vw);padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center">
+            <div style="font-size:2rem;margin-bottom:10px">🗑️</div>
+            <h6 style="font-weight:800;color:var(--navy);margin-bottom:6px">Hapus Background?</h6>
+            <p id="bgDeleteName" style="color:#6b7280;font-size:.85rem;margin-bottom:20px"></p>
+            <div class="d-flex gap-2 justify-content-center">
+                <button onclick="closeBgDeleteModal()" style="background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:var(--navy);cursor:pointer">Batal</button>
+                <button id="btnConfirmDelete" style="background:#ef4444;border:none;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">Hapus</button>
+            </div>
+        </div>
+    </div>
+    <div id="bgLibraryModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+        <div style="background:#fff;border-radius:16px;width:min(720px,95vw);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden">
+            {{-- Header --}}
+            <div style="padding:18px 24px 0;flex-shrink:0">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 style="font-weight:800;color:var(--navy);margin:0;font-size:1rem">🖼 Pilih Background</h6>
+                        <p style="font-size:.75rem;color:#9ca3af;margin:2px 0 0">Pilih background bawaan Validly atau milik lembaga kamu</p>
+                    </div>
+                    <button onclick="closeBgLibrary()" style="background:none;border:none;font-size:1.4rem;color:#9ca3af;cursor:pointer;line-height:1;padding:0">&times;</button>
+                </div>
+                {{-- Tabs --}}
+                <div style="display:flex;gap:0;border-bottom:2px solid #eef2f9">
+                    <button id="tabValidly" onclick="switchBgTab('validly')" class="bg-lib-tab active">✦ Background Validly</button>
+                    <button id="tabLembaga" onclick="switchBgTab('lembaga')" class="bg-lib-tab">🏛 Background Lembaga</button>
+                </div>
+            </div>
+            {{-- Body --}}
+            <div style="flex:1;overflow-y:auto;padding:16px 24px 20px">
+                {{-- Tab Validly --}}
+                <div id="panelValidly">
+                    <div id="gridValidly" class="bg-lib-grid">
+                        <div class="bg-lib-loading">Memuat…</div>
+                    </div>
+                </div>
+                {{-- Tab Lembaga --}}
+                <div id="panelLembaga" style="display:none">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span style="font-size:.78rem;color:#6b7280">
+                            Background yang sudah kamu simpan
+                            <span id="bgCountBadge" style="background:#f0f4ff;border:1px solid #dde4f0;border-radius:20px;padding:1px 8px;font-size:.72rem;font-weight:700;color:var(--navy-mid);margin-left:6px">0/10</span>
+                        </span>
+                        <label id="btnUploadLib" class="btn-bg-upload-lib" style="cursor:pointer">
+                            <i class="bi bi-cloud-upload me-1"></i>Upload Baru
+                            <input type="file" accept="image/png,image/jpeg" style="display:none" onchange="uploadToLibrary(this)">
+                        </label>
+                    </div>
+                    <div id="gridLembaga" class="bg-lib-grid">
+                        <div class="bg-lib-loading">Memuat…</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -476,7 +558,15 @@ async function removeAsset(type) {
 function showAssetPreview(type, url) {
     const key = type==='background' ? 'bg' : type;
     const prev = document.getElementById(key+'Preview');
-    if (prev) { const c = document.createElement('div'); c.className='img-preview-container'; const img=document.createElement('img'); img.src=url; c.appendChild(img); prev.innerHTML=''; prev.appendChild(c); }
+    if (prev) {
+        const c = document.createElement('div');
+        c.className = 'img-preview-container' + (type==='background' ? ' bg-preview' : '');
+        const img = document.createElement('img');
+        img.src = url;
+        c.appendChild(img);
+        prev.innerHTML = '';
+        prev.appendChild(c);
+    }
     document.getElementById(key+'Badge')?.classList.remove('d-none');
     if (type==='background') document.getElementById('btnRemoveBg')?.classList.remove('d-none');
     else document.getElementById(type+'Remove')?.classList.remove('d-none');
@@ -500,6 +590,176 @@ async function loadAssets() {
     } catch(e) {}
 }
 loadAssets();
+
+// ════ BACKGROUND LIBRARY ════
+let bgLibData = { system: [], lembaga: [], current_count: 0, max_count: 10 };
+let bgLibLoaded = false;
+let bgActiveTab = 'validly';
+let bgDeleteTarget = null;
+
+async function openBgLibrary() {
+    const modal = document.getElementById('bgLibraryModal');
+    modal.style.display = 'flex';
+    if (!bgLibLoaded) await loadBgLibrary();
+}
+
+function closeBgLibrary() {
+    document.getElementById('bgLibraryModal').style.display = 'none';
+}
+
+// Tutup modal saat klik backdrop
+document.getElementById('bgLibraryModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBgLibrary();
+});
+
+async function loadBgLibrary() {
+    try {
+        const res  = await fetch('{{ route("background.library.index") }}');
+        const data = await res.json();
+        bgLibData  = data;
+        bgLibLoaded = true;
+        renderBgGrid('validly', data.system);
+        renderBgGrid('lembaga', data.lembaga);
+        updateCountUI(data.current_count, data.max_count);
+    } catch(e) {
+        showNotif('Gagal', 'Tidak bisa memuat library background.', 'error');
+    }
+}
+
+function updateCountUI(current, max) {
+    const badge  = document.getElementById('bgCountBadge');
+    const btn    = document.getElementById('btnUploadLib');
+    if (badge) {
+        badge.textContent = `${current}/${max}`;
+        badge.style.background  = current >= max ? '#fef2f2' : '#f0f4ff';
+        badge.style.color       = current >= max ? '#b91c1c' : 'var(--navy-mid)';
+        badge.style.borderColor = current >= max ? '#fca5a5' : '#dde4f0';
+    }
+    if (btn) {
+        const atLimit = current >= max;
+        btn.style.opacity      = atLimit ? '.45' : '1';
+        btn.style.pointerEvents = atLimit ? 'none' : '';
+        btn.title = atLimit ? `Batas maksimal ${max} background telah tercapai. Hapus background lain terlebih dahulu.` : '';
+    }
+}
+
+function renderBgGrid(tab, items) {
+    const grid = document.getElementById('grid' + (tab === 'validly' ? 'Validly' : 'Lembaga'));
+    if (!items || items.length === 0) {
+        grid.innerHTML = `<div class="bg-lib-empty">${tab === 'lembaga' ? 'Belum ada background tersimpan.<br>Upload background pertamamu!' : 'Belum ada background bawaan.'}</div>`;
+        return;
+    }
+    grid.innerHTML = items.map(bg => `
+        <div class="bg-lib-item" data-id="${bg.id}" data-url="${bg.url}" data-name="${bg.name}" onclick="selectBgFromLibrary(${bg.id}, '${bg.url}', this)">
+            <img src="${bg.url}" alt="${bg.name}" loading="lazy">
+            <div class="bg-lib-item-name">${bg.name}</div>
+            ${!bg.is_system ? `<button class="bg-lib-item-del" onclick="openBgDeleteModal(event, ${bg.id}, '${bg.name}')" title="Hapus">✕</button>` : ''}
+        </div>
+    `).join('');
+}
+
+function switchBgTab(tab) {
+    bgActiveTab = tab;
+    document.getElementById('panelValidly').style.display  = tab === 'validly' ? '' : 'none';
+    document.getElementById('panelLembaga').style.display  = tab === 'lembaga' ? '' : 'none';
+    document.getElementById('tabValidly').classList.toggle('active', tab === 'validly');
+    document.getElementById('tabLembaga').classList.toggle('active', tab === 'lembaga');
+}
+
+async function selectBgFromLibrary(id, url, el) {
+    document.querySelectorAll('.bg-lib-item').forEach(i => i.classList.remove('selected'));
+    el.classList.add('selected');
+
+    try {
+        const res = await fetch(`/dashboard/backgrounds/library/${id}/select`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAssetPreview('background', data.url);
+            closeBgLibrary();
+            showNotif('Background dipilih', 'Background berhasil diset.', 'success');
+        }
+    } catch(e) {
+        showNotif('Gagal', 'Tidak bisa memilih background.', 'error');
+    }
+}
+
+async function uploadToLibrary(input) {
+    const file = input.files[0]; if (!file) return;
+    if (!['image/jpeg','image/jpg','image/png'].includes(file.type)) { showNotif('Format tidak didukung', 'Gunakan PNG atau JPG.', 'warn'); return; }
+    if (file.size > 2*1024*1024) { showNotif('File terlalu besar', 'Maksimal 2MB.', 'warn'); return; }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', file.name.replace(/\.[^/.]+$/, ''));
+
+    try {
+        const res  = await fetch('{{ route("background.library.store") }}', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
+            body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            if (data.limit_reached) {
+                showNotif('Batas tercapai', `Maksimal ${bgLibData.max_count} background per lembaga. Hapus background lain terlebih dahulu.`, 'warn');
+            } else {
+                showNotif('Upload gagal', data.message || 'Error', 'error');
+            }
+            input.value = ''; return;
+        }
+        bgLibData.lembaga.unshift(data);
+        bgLibData.current_count = data.current_count;
+        renderBgGrid('lembaga', bgLibData.lembaga);
+        updateCountUI(data.current_count, data.max_count);
+        showNotif('Upload berhasil', `"${data.name}" ditambahkan ke library.`, 'success');
+        input.value = '';
+    } catch(e) {
+        showNotif('Upload gagal', e.message, 'error');
+    }
+}
+
+// ── Konfirmasi Hapus ────────────────────────────────────────
+function openBgDeleteModal(e, id, name) {
+    e.stopPropagation();
+    bgDeleteTarget = id;
+    document.getElementById('bgDeleteName').textContent = `"${name}" akan dihapus permanen dari library.`;
+    document.getElementById('bgDeleteModal').style.display = 'flex';
+}
+
+function closeBgDeleteModal() {
+    bgDeleteTarget = null;
+    document.getElementById('bgDeleteModal').style.display = 'none';
+}
+
+document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+    if (!bgDeleteTarget) return;
+    const id = bgDeleteTarget;
+    closeBgDeleteModal();
+
+    try {
+        const res = await fetch(`/dashboard/backgrounds/library/${id}`, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
+        });
+        if (res.ok) {
+            bgLibData.lembaga = bgLibData.lembaga.filter(b => b.id !== id);
+            bgLibData.current_count = Math.max(0, bgLibData.current_count - 1);
+            renderBgGrid('lembaga', bgLibData.lembaga);
+            updateCountUI(bgLibData.current_count, bgLibData.max_count);
+            showNotif('Dihapus', 'Background dihapus dari library.', 'success');
+        }
+    } catch(e) {
+        showNotif('Gagal', 'Tidak bisa menghapus background.', 'error');
+    }
+});
+
+// Tutup delete modal saat klik backdrop
+document.getElementById('bgDeleteModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBgDeleteModal();
+});
 
 // ════ NUMBERING ════
 const SEG_TYPES = { teks:{label:'Teks / Kode',placeholder:'Contoh: CERT'}, nomor:{label:'Nomor Urut',placeholder:'Mulai dari: 001'}, tahun:{label:'Tahun',placeholder:'Contoh: 2026'}, bulan:{label:'Bulan',placeholder:'Otomatis'} };

@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CertificateController;
 use App\Http\Controllers\CertificateBatchController;
 use App\Http\Controllers\CertificateVerificationController;
+use App\Http\Controllers\BackgroundLibraryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,6 +83,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('dashboard')->group(function (
     Route::post('/assets/upload', [CertificateController::class, 'uploadAsset'])->name('certificate.asset.upload');
     Route::post('/assets/remove', [CertificateController::class, 'removeAsset'])->name('certificate.asset.remove');
     Route::get('/assets',         [CertificateController::class, 'getAssets'])->name('certificate.asset.get');
+
+    // Background Library
+    Route::get('/backgrounds/library',              [BackgroundLibraryController::class, 'index'])  ->name('background.library.index');
+    Route::post('/backgrounds/library',             [BackgroundLibraryController::class, 'store'])  ->name('background.library.store');
+    Route::delete('/backgrounds/library/{background}', [BackgroundLibraryController::class, 'destroy'])->name('background.library.destroy');
+    Route::post('/backgrounds/library/{background}/select', [BackgroundLibraryController::class, 'select'])->name('background.library.select');
 
     // Profil
     Route::get('/profile',  [ProfileController::class, 'edit'])->name('profile.edit');
