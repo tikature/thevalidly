@@ -286,4 +286,49 @@ class CertificateAssetTest extends TestCase
             ->post(route('certificate.asset.upload'), ['type' => 'logo', 'file' => $file])
             ->assertForbidden();
     }
+
+    // ── Background Library integration ──────────────────────────
+
+    #[Test]
+    public function selecting_background_from_library_updates_institution_background_path(): void
+    {
+        Storage::disk('public')->put('backgrounds/system/classic.jpg', 'fake');
+
+        $bg = \App\Models\BackgroundLibrary::create([
+            'name'      => 'Classic',
+            'path'      => 'backgrounds/system/classic.jpg',
+            'is_system' => true,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->postJson(route('background.library.select', $bg))
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertEquals(
+            'backgrounds/system/classic.jpg',
+            $this->institution->fresh()->background_path
+        );
+    }
+
+    #[Test]
+    public function get_assets_returns_background_url_after_library_select(): void
+    {
+        Storage::disk('public')->put('backgrounds/system/modern.jpg', 'fake');
+
+        $bg = \App\Models\BackgroundLibrary::create([
+            'name'      => 'Modern',
+            'path'      => 'backgrounds/system/modern.jpg',
+            'is_system' => true,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->postJson(route('background.library.select', $bg));
+
+        $res = $this->actingAs($this->admin)
+            ->get(route('certificate.asset.get'))
+            ->assertOk();
+
+        $this->assertNotNull($res->json('background'));
+    }
 }
