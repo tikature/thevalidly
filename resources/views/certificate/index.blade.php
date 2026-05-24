@@ -405,6 +405,17 @@
 <div class="modal fade" id="modalBatchProgress" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:500px">
         <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden">
+         {{-- Tombol X cancel di pojok kanan atas --}}
+            <div id="batchCancelSection" style="position:absolute;top:12px;right:12px;z-index:10">
+                <button id="btnCancelBatch" onclick="cancelBatch()"
+                        title="Batalkan"
+                        style="width:30px;height:30px;border-radius:50%;border:1.5px solid #fca5a5;
+                               background:#fef2f2;color:#b91c1c;font-size:1.2rem;cursor:pointer;
+                               display:flex;align-items:center;justify-content:center;
+                               transition:all .2s;padding:0;line-height:1">
+                    &times;
+                </button>
+            </div>
             <div class="modal-body p-4">
                 {{-- Header --}}
                 <div class="text-center mb-4">
@@ -474,6 +485,7 @@
                     </div>
                     <div id="failedEntries" style="font-size:.78rem;color:#374151;max-height:100px;overflow-y:auto;background:#fef2f2;border-radius:8px;padding:8px 12px"></div>
                 </div>
+                
 
                 {{-- Done actions --}}
                 <div id="batchDoneActions" class="d-none">
@@ -509,10 +521,56 @@
     </div>
 </div>
 
+{{-- Modal Konfirmasi Cancel Batch --}}
+<div class="modal fade" id="modalCancelConfirm" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:16px">
+            <div class="modal-body p-4 text-center">
+                <div style="font-size:2rem;margin-bottom:10px">⚠️</div>
+                <h6 style="font-weight:800;color:var(--navy);margin-bottom:6px">Batalkan Proses?</h6>
+                <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px">
+                    Seluruh sertifikat yang sudah terbuat akan <strong>dihapus permanen</strong>.
+                    Tindakan ini tidak dapat dibatalkan.
+                </p>
+                <div class="d-flex gap-2">
+                    <button onclick="closeCancelConfirm()"
+                            style="flex:1;background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;
+                                   padding:10px;font-size:.82rem;font-weight:700;color:var(--navy);cursor:pointer">
+                        Lanjutkan Proses
+                    </button>
+                    <button id="btnConfirmCancel"
+                            style="flex:1;background:#ef4444;border:none;border-radius:8px;
+                                   padding:10px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">
+                        <span id="cancelBtnText">Ya, Batalkan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
+// ════ GLOBAL AUTH ERROR HANDLER ════
+async function handleAuthError(res) {
+    if (res.status === 401) {
+        const data = await res.json().catch(() => ({}));
+        showNotif(
+            'Sesi Berakhir',
+            data.message || 'Akun Anda tidak aktif atau sesi telah berakhir. Anda akan diarahkan ke halaman login.',
+            'warn',
+            0  // tidak auto-close
+        );
+        setTimeout(() => {
+            window.location.href = data.redirect || '{{ route("login") }}';
+        }, 2500);
+        return true; // sudah ditangani
+    }
+    return false;
+}
+
 // ════ NOTIF ════
 function showNotif(title, messages, type, duration) {
     type = type || 'error'; duration = duration !== undefined ? duration : 5000;
@@ -544,6 +602,7 @@ async function uploadAsset(type, input) {
     const formData = new FormData(); formData.append('type', type); formData.append('file', file);
     try {
         const res = await fetch('{{ route("certificate.asset.upload") }}', { method:'POST', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content}, body:formData });
+        if (await handleAuthError(res)) { input.value=''; return; }
         const data = await res.json();
         if (!res.ok) { showNotif('Upload gagal', data.message||'Error', 'error'); input.value=''; return; }
         if (data.url) showAssetPreview(type, data.url);
@@ -1004,12 +1063,14 @@ async function doGenerate(participants) {
         const p=participants[0];
         try {
             const res=await fetch('{{ route("certificate.store") }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({...commonPayload,nama:p.nama,perusahaan:p.perusahaan||null,nomor:p.nomor})});
+            if (await handleAuthError(res)) return;
             const data=await res.json(); if(!res.ok) throw new Error(data.message||'Gagal');
             renderSingleResult(p, data.pdf_url, data.verification_token);
         } catch(e) { showNotif('Gagal',e.message,'error'); grid.innerHTML=''; }
     } else {
         try {
             const res=await fetch('{{ route("certificate.batch.store") }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({...commonPayload,participants})});
+            if (await handleAuthError(res)) return;
             const data=await res.json(); if(!res.ok) throw new Error(data.message||'Gagal');
             window._currentBatchToken=data.batch_token;
             showBatchProgress(data.batch_token, data.total);
@@ -1191,6 +1252,7 @@ function showBatchProgress(batchToken, total) {
     batchStartTime = Date.now();
     lastProcessed  = 0;
     lastPollTime   = Date.now();
+    isCancelling   = false;
 
     document.getElementById('batchProgressBar').style.width = '0%';
     document.getElementById('batchProgressPct').textContent = '0%';
@@ -1206,6 +1268,10 @@ function showBatchProgress(batchToken, total) {
     document.getElementById('modalIcon').textContent = '⚙️';
     document.getElementById('modalTitle').textContent = 'Memproses Sertifikat...';
     document.getElementById('modalSubtitle').textContent = 'Harap tunggu, jangan tutup halaman ini.';
+     document.getElementById('batchCancelSection').style.display = 'block';
+    document.getElementById('batchDoneActions').classList.add('d-none');
+    document.getElementById('batchStuckActions').classList.add('d-none');
+
 
     // Tip berdasarkan jumlah
     const tipEl = document.getElementById('perfTip');
@@ -1296,6 +1362,8 @@ async function pollBatchProgress(token) {
         // Selesai
         if (data.status === 'done' || data.status === 'failed') {
             clearInterval(pollingInterval);
+            pollingInterval = null;
+            document.getElementById('batchCancelSection').style.display = 'none';
             document.getElementById('etaInfo').classList.add('d-none');
             document.getElementById('batchDoneActions').classList.remove('d-none');
             document.getElementById('modalIcon').textContent = data.failed > 0 ? '⚠️' : '✅';
@@ -1333,5 +1401,74 @@ async function pollBatchProgress(token) {
         }
     } catch(e) { console.warn('Polling error:', e); }
 }
+
+let isCancelling = false;
+let cancelModalInstance = null;
+
+function cancelBatch() {
+    cancelModalInstance = new bootstrap.Modal(document.getElementById('modalCancelConfirm'));
+    cancelModalInstance.show();
+}
+
+function closeCancelConfirm() {
+    cancelModalInstance?.hide();
+}
+
+document.getElementById('btnConfirmCancel').addEventListener('click', async () => {
+    if (isCancelling || !window._currentBatchToken) return;
+    isCancelling = true;
+
+    const btnText = document.getElementById('cancelBtnText');
+    btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Membatalkan...';
+    document.getElementById('btnConfirmCancel').disabled = true;
+
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+
+    try {
+        const res = await fetch(`{{ url('/dashboard/certificates/batch') }}/${window._currentBatchToken}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'  // ← TAMBAH INI
+            }
+        });
+
+        // Cek dulu apakah response benar-benar JSON
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            const text = await res.text();
+            console.error('Response bukan JSON:', text);
+            throw new Error(res.status === 401 
+                ? 'Sesi habis, silakan refresh halaman.' 
+                : `Server error ${res.status}`
+            );
+        }
+
+        const data = await res.json();
+
+        cancelModalInstance?.hide();
+        bootstrap.Modal.getInstance(document.getElementById('modalBatchProgress'))?.hide();
+
+        document.getElementById('results').classList.add('d-none');
+        document.getElementById('certGrid').innerHTML = '';
+        document.getElementById('btnDownloadZip').style.display = 'none';
+        window._currentBatchToken = null;
+
+        showNotif(
+            'Proses dibatalkan',
+            data.deleted > 0
+                ? `${data.deleted} sertifikat yang sempat dibuat telah dihapus.`
+                : 'Tidak ada data yang tersimpan.',
+            'warn'
+        );
+    } catch (e) {
+        showNotif('Gagal membatalkan', e.message, 'error');
+        isCancelling = false;
+        document.getElementById('btnConfirmCancel').disabled = false;
+        btnText.textContent = 'Ya, Batalkan';
+    }
+});
 </script>
 @endpush

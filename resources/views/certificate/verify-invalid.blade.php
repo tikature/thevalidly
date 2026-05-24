@@ -54,7 +54,7 @@
         }
 
         .card-invalid h4 {
-            font-family:'Playfair Display',serif;
+            font-family:'Inter',sans-serif;
             font-size:1.4rem; font-weight:600;
             color:var(--navy); margin-bottom:10px;
         }
@@ -122,7 +122,7 @@
             <i class="bi bi-x-circle-fill"></i>
         </div>
 
-        <h4>Sertifikat Tidak Ditemukan</h4>
+        <h4><strong>Sertifikat Tidak Ditemukan</strong></h4>
         <p>Kode verifikasi tidak cocok dengan sertifikat manapun. Pastikan kode yang dimasukkan sudah benar.</p>
 
         @if(!empty($token))

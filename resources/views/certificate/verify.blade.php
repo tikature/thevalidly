@@ -63,7 +63,7 @@
         }
 
         .hero h1 {
-            font-family:'Playfair Display',serif;
+            font-family:'Inter',sans-serif;
             font-size:clamp(1.8rem,4vw,2.6rem);
             color:#fff; font-weight:600;
             margin-bottom:8px; line-height:1.25;
@@ -87,7 +87,7 @@
         }
         .cert-field-value { font-size:.95rem; font-weight:600; color:var(--navy); }
         .cert-nama {
-            font-family:'Playfair Display',serif;
+            font-family:'Inter',sans-serif;
             font-size:2rem; font-style:italic;
             color:var(--navy); margin-bottom:4px; line-height:1.2;
         }
@@ -144,7 +144,7 @@
 
         {{-- Nama peserta --}}
         <div class="cert-field-label">Diberikan Kepada</div>
-        <div class="cert-nama">{{ $certificate->nama }}</div>
+        <div class="cert-nama"><strong>{{ $certificate->nama }}</strong></div>
 
         @if($certificate->perusahaan)
         <div style="font-size:.875rem;color:#6b7280;margin-bottom:16px">
