@@ -38,6 +38,9 @@ class CertificateController extends Controller
         ]);
         // QR code di-generate otomatis via model event `created`
 
+        // Pre-cache PDF agar download lebih cepat
+        $this->cachePdf($cert);
+
         return response()->json([
             'success'            => true,
             'verification_token' => $cert->verification_token,
@@ -82,6 +85,9 @@ class CertificateController extends Controller
             ]);
             // QR code di-generate otomatis via model event `created`
 
+            // Pre-cache PDF agar download lebih cepat
+            $this->cachePdf($cert);
+
             $certificates[] = [
                 'nama'               => $cert->nama,
                 'nomor'              => $cert->nomor,
@@ -119,7 +125,14 @@ class CertificateController extends Controller
             Storage::disk('local')->put($cachePath, $pdf->output());
             return response()->json(['success' => true, 'cached' => false]);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            \Illuminate\Support\Facades\Log::error('Pregenerate PDF gagal: ' . $e->getMessage(), [
+                'token' => $token,
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'error'   => 'Gagal membuat PDF. Silakan coba lagi atau hubungi administrator.',
+            ], 500);
         }
     }
 
@@ -151,6 +164,43 @@ class CertificateController extends Controller
         $institution = $certificate->institution;
         $pdf = $this->buildPdf($certificate, $institution);
         return $pdf->download($filename);
+    }
+
+    /**
+     * Cache PDF ke storage/app/pdf_cache/ agar download lebih cepat.
+     * Gagal diam-diam (hanya log) — tidak mengganggu response ke user.
+     */
+    private function cachePdf(Certificate $certificate): void
+    {
+        try {
+            $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
+            if (!is_dir($cacheDir)) {
+                mkdir($cacheDir, 0755, true);
+            }
+
+            $cachePath   = $cacheDir . DIRECTORY_SEPARATOR . $certificate->verification_token . '.pdf';
+            $institution = $certificate->institution;
+
+            // View warmup — hindari race condition rename .tmp di Windows
+            view('certificate.pdf', [
+                'certificate' => $certificate,
+                'institution' => $institution,
+                'logoPath'    => $this->resolveAssetPath($institution->logo_path),
+                'ttdPath'     => $this->resolveAssetPath($institution->ttd_path),
+                'capPath'     => $this->resolveAssetPath($institution->cap_path),
+                'bgPath'      => $this->resolveAssetPath($institution->background_path),
+            ])->render();
+
+            $pdf = $this->buildPdf($certificate, $institution);
+            file_put_contents($cachePath, $pdf->output());
+            unset($pdf);
+            gc_collect_cycles();
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning(
+                'cachePdf gagal [' . $certificate->verification_token . ']: ' . $e->getMessage()
+            );
+        }
     }
 
     private function buildPdf(Certificate $certificate, $institution)
@@ -248,7 +298,7 @@ class CertificateController extends Controller
         $sortBy        = $request->sort_by === 'event' ? 'date_start' : 'issued_at';
 
         $certificates = Certificate::forInstitution($institutionId)
-            ->with('issuedBy')
+            ->with(['issuedBy', 'batch'])
             ->when($request->search, fn($q) => $q->search($request->search))
             ->orderBy($sortBy, $sort)
             ->paginate(20)

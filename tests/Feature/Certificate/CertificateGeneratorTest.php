@@ -211,7 +211,7 @@ class CertificateGeneratorTest extends TestCase
             ->assertSee('Tidak Ditemukan');
     }
     #[Test]
-    public function it_returns_500_when_pregenerate_fails()
+    public function it_returns_500_with_generic_message_when_pregenerate_fails()
     {
         $cert = Certificate::factory()->create(['institution_id' => $this->institution->id]);
         
@@ -223,7 +223,8 @@ class CertificateGeneratorTest extends TestCase
             ->postJson(route('certificate.pregenerate', $cert->verification_token));
 
         $response->assertStatus(500)
-            ->assertJson(['success' => false, 'error' => 'PDF Error']);
+            ->assertJson(['success' => false])
+            ->assertJsonMissing(['error' => 'PDF Error']); // pesan internal tidak boleh bocor ke response
     }
 
     #[Test]
@@ -279,5 +280,73 @@ class CertificateGeneratorTest extends TestCase
         $response->assertRedirect();
         $this->assertDatabaseMissing('certificates', ['id' => $cert->id]);
         \Illuminate\Support\Facades\Storage::disk('local')->assertMissing($cachePath);
+    }
+
+    // ── cachePdf() coverage ──────────────────────────────────
+
+    #[Test]
+    public function cache_pdf_creates_directory_if_not_exists(): void
+    {
+        $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
+
+        // Hapus semua file lalu folder agar mkdir terpanggil
+        if (is_dir($cacheDir)) {
+            foreach (glob($cacheDir . DIRECTORY_SEPARATOR . '*') ?: [] as $f) {
+                if (is_file($f)) @unlink($f);
+            }
+            @rmdir($cacheDir);
+        }
+
+        if (is_dir($cacheDir)) {
+            $this->markTestSkipped('Folder pdf_cache tidak bisa dihapus.');
+        }
+
+        // Mock PDF agar tidak generate sungguhan
+        $pdfMock = \Mockery::mock(\Barryvdh\DomPDF\PDF::class);
+        $pdfMock->shouldReceive('setPaper')->andReturnSelf();
+        $pdfMock->shouldReceive('setOptions')->andReturnSelf();
+        $pdfMock->shouldReceive('output')->andReturn('%PDF-1.4 fake');
+        \Barryvdh\DomPDF\Facade\Pdf::shouldReceive('loadView')->andReturn($pdfMock);
+
+        $this->actingAs($this->admin)
+            ->postJson(route('certificate.store'), [
+                'nama'        => 'Test Mkdir',
+                'nomor'       => 'CERT/001',
+                'event_name'  => 'Pelatihan',
+                'date_start'  => '2026-06-30',
+                'event_place' => 'Jakarta',
+                'signer_name' => 'Dr. Test',
+                'signer_title'=> 'Ketua',
+            ])
+            ->assertOk();
+
+        // Folder harus sudah dibuat oleh cachePdf()
+        $this->assertDirectoryExists($cacheDir);
+    }
+
+    #[Test]
+    public function cache_pdf_logs_warning_when_build_fails(): void
+    {
+        // Simulasi buildPdf() throw exception → cachePdf catch harus log warning
+        \Barryvdh\DomPDF\Facade\Pdf::shouldReceive('loadView')
+            ->andThrow(new \Exception('PDF build error'));
+
+        \Illuminate\Support\Facades\Log::shouldReceive('warning')
+            ->once()
+            ->withArgs(fn($msg) => str_contains($msg, 'cachePdf gagal'));
+
+        // Sertifikat tetap berhasil dibuat meski cachePdf gagal
+        $response = $this->actingAs($this->admin)
+            ->postJson(route('certificate.store'), [
+                'nama'        => 'Cache Fail Test',
+                'nomor'       => 'CERT/002',
+                'event_name'  => 'Pelatihan',
+                'date_start'  => '2026-06-30',
+                'signer_name' => 'Dr. Test',
+                'signer_title'=> 'Ketua',
+            ]);
+
+        $response->assertOk();
+        $this->assertDatabaseHas('certificates', ['nama' => 'Cache Fail Test']);
     }
 }

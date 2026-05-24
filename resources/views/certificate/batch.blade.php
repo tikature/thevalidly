@@ -50,7 +50,7 @@
             padding:5px 14px; border-radius:20px; margin-bottom:16px;
         }
         .hero h1 {
-            font-family:'Playfair Display',serif;
+            font-family:'Inter',sans-serif;
             font-size:clamp(1.6rem,4vw,2.4rem);
             color:#fff; margin-bottom:8px; line-height:1.25;
         }
@@ -159,8 +159,8 @@
             <i class="bi bi-building-check"></i>
             {{ $batch->institution->name }}
         </div>
-        <h1>{{ $batch->event_name }}</h1>
-        <p>{{ $batch->date_start ? $batch->date_start->format('d M Y') : '-' }}{{ $batch->date_end && $batch->date_end->ne($batch->date_start) ? ' – '.$batch->date_end->format('d M Y') : '' }} &middot; {{ $batch->certificates->count() }} peserta</p>
+        <h1><strong>{{ $batch->event_name }}</strong></h1>
+        <p>{{ $batch->date_start ? $batch->date_start->format('d M Y') : '-' }}{{ $batch->date_end && $batch->date_end->ne($batch->date_start) ? ' – '.$batch->date_end->format('d M Y') : '' }} &middot; {{ $batch->certificates->count() }} peserta &middot; {{ $batch->event_place }}
     </div>
 </div>
 
@@ -182,16 +182,18 @@
                     <div class="cert-meta d-flex align-items-center gap-2 flex-wrap">
                         @if($cert->perusahaan)
                             <span><i class="bi bi-building me-1"></i>{{ $cert->perusahaan }}</span>
-                            <span style="color:#e5e7eb">·</span>
+                            <!-- <span style="color:#e5e7eb">·</span> -->
                         @endif
-                        <span class="cert-nomor">{{ $cert->nomor }}</span>
+                        <!-- <span class="cert-nomor">{{ $cert->nomor }}</span> -->
                     </div>
                 </div>
             </div>
-            <div class="d-flex gap-3 justify-content-center flex-wrap mb-4">
-                <button class="btn-dl-sm" id="btnDownload" onclick="downloadPdf(this)">
+            <div class="d-flex gap-3 justify-content-center flex-wrap mb-6">
+                <a href="{{ $cert->participantUrl() }}"
+                   class="btn-dl-sm"
+                   target="_blank">
                     <i class="bi bi-file-earmark-pdf"></i> Download PDF
-                </button>
+                </a>
                 <a href="{{ $cert->verificationUrl() }}" class="btn-vr-sm" target="_blank">
                     <i class="bi bi-patch-check"></i> Verifikasi
                 </a>

@@ -530,7 +530,7 @@ class CertificateBatchControllerTest extends TestCase
     }
 
     #[Test]
-    public function download_zip_returns_422_when_no_certificates(): void
+    public function download_zip_returns_404_when_no_certificates(): void
     {
         $batch = CertificateBatch::factory()->done()->create([
             'institution_id' => $this->institution->id,
@@ -538,18 +538,18 @@ class CertificateBatchControllerTest extends TestCase
 
         $this->actingAs($this->user)
             ->getJson(route('certificate.batch.zip', $batch->batch_token))
-            ->assertStatus(422)
+            ->assertStatus(404)
             ->assertJsonFragment(['error' => 'Tidak ada sertifikat dalam batch ini.']);
     }
 
     #[Test]
-    public function download_zip_returns_422_when_no_pdf_in_cache(): void
+    public function download_zip_returns_409_when_no_pdf_in_cache(): void
     {
         $batch = $this->makeBatchWithCerts(2, ['status' => 'done']);
 
         $this->actingAs($this->user)
             ->getJson(route('certificate.batch.zip', $batch->batch_token))
-            ->assertStatus(422)
+            ->assertStatus(409)
             ->assertJsonFragment(['error' => 'PDF belum siap. Tunggu hingga semua sertifikat selesai diproses, lalu coba lagi.']);
     }
 
@@ -688,5 +688,131 @@ class CertificateBatchControllerTest extends TestCase
 
         $this->assertEquals('', $method->invoke($controller, null));
         $this->assertEquals('', $method->invoke($controller, ''));
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // cancelBatch() — POST /certificates/batch/{token}/cancel
+    // (sesuai implementasi di index.blade.php)
+    // ══════════════════════════════════════════════════════════
+
+    #[Test]
+    public function admin_can_cancel_processing_batch(): void
+    {
+        $batch = $this->makeBatchWithCerts(3, ['status' => 'processing']);
+
+        $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertOk()
+            ->assertJson(['success' => true, 'deleted' => 3]);
+
+        $this->assertNull(CertificateBatch::find($batch->id));
+        $this->assertDatabaseCount('certificates', 0);
+    }
+
+    #[Test]
+    public function cancel_batch_deletes_pdf_cache_files(): void
+    {
+        $batch    = $this->makeBatchWithCerts(2, ['status' => 'processing']);
+        $cacheDir = storage_path('app/pdf_cache');
+
+        $tokens = $batch->certificates()->pluck('verification_token');
+        foreach ($tokens as $token) {
+            file_put_contents($cacheDir . '/' . $token . '.pdf', 'fake-pdf');
+        }
+
+        $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertOk();
+
+        foreach ($tokens as $token) {
+            $this->assertFileDoesNotExist($cacheDir . '/' . $token . '.pdf');
+        }
+    }
+
+    #[Test]
+    public function cancel_batch_works_even_when_no_pdf_cache_exists(): void
+    {
+        $batch = $this->makeBatchWithCerts(2, ['status' => 'processing']);
+
+        $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertOk()
+            ->assertJson(['success' => true]);
+    }
+
+    #[Test]
+    public function cancel_batch_fails_when_batch_is_done(): void
+    {
+        $batch = $this->makeBatchWithCerts(2, ['status' => 'done']);
+
+        $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertUnprocessable()
+            ->assertJson(['success' => false]);
+
+        $this->assertNotNull(CertificateBatch::find($batch->id));
+        $this->assertDatabaseCount('certificates', 2);
+    }
+
+    #[Test]
+    public function cancel_batch_returns_404_for_other_institution_batch(): void
+    {
+        $other      = Institution::factory()->create();
+        $otherUser  = User::factory()->adminOf($other)->create();
+        $otherBatch = $this->makeBatchWithCerts(2, ['status' => 'processing']);
+
+        $this->actingAs($otherUser)
+            ->postJson(route('certificate.batch.cancel', $otherBatch->batch_token))
+            ->assertNotFound();
+    }
+
+    #[Test]
+    public function cancel_batch_returns_404_for_invalid_token(): void
+    {
+        $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', 'token-tidak-ada'))
+            ->assertNotFound();
+    }
+
+    #[Test]
+    public function cancel_batch_requires_auth(): void
+    {
+        $batch = $this->makeBatchWithCerts(1, ['status' => 'processing']);
+
+        $this->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertUnauthorized();
+    }
+
+    #[Test]
+    public function cancel_batch_response_contains_deleted_count(): void
+    {
+        $batch = $this->makeBatchWithCerts(3, ['status' => 'processing']);
+
+        $res = $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertOk();
+
+        $this->assertTrue($res->json('success'));
+        $this->assertEquals(3, $res->json('deleted'));
+    }
+
+    #[Test]
+    public function cancel_batch_with_zero_certificates_succeeds(): void
+    {
+        $batch = CertificateBatch::factory()->create([
+            'institution_id' => $this->institution->id,
+            'issued_by'      => $this->user->id,
+            'status'         => 'processing',
+            'total'          => 0,
+            'processed'      => 0,
+            'failed'         => 0,
+        ]);
+
+        $this->actingAs($this->user)
+            ->postJson(route('certificate.batch.cancel', $batch->batch_token))
+            ->assertOk()
+            ->assertJson(['success' => true, 'deleted' => 0]);
+
+        $this->assertNull(CertificateBatch::find($batch->id));
     }
 }

@@ -70,6 +70,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('dashboard')->group(function (
     Route::get('/certificates/batch/{token}/progress',         [CertificateBatchController::class, 'progress'])->name('certificate.batch.progress');
     Route::get('/certificates/batch/{token}/certs',            [CertificateBatchController::class, 'certificates'])->name('certificate.batch.certs');
     Route::get('/certificates/batch/{token}/zip',              [CertificateBatchController::class, 'downloadZip'])->name('certificate.batch.zip');
+    Route::post('/certificates/batch/{token}/cancel', [CertificateBatchController::class, 'cancelBatch'])
+    ->name('certificate.batch.cancel');
 
     // Batch history
     Route::get('/history/batch',                    [CertificateController::class, 'historyBatch'])->name('certificate.history.batch');
