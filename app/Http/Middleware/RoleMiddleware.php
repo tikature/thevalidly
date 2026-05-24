@@ -32,6 +32,15 @@ class RoleMiddleware
         // Cek apakah akun aktif
         if (!$user->is_active) {
             auth()->logout();
+
+            // Untuk request AJAX/JSON → kembalikan 401 JSON bukan redirect HTML
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'message'  => 'Akun Anda telah dinonaktifkan.',
+                    'redirect' => route('login'),
+                ], 401);
+            }
+
             return redirect()->route('login')
                 ->withErrors(['email' => 'Akun Anda telah dinonaktifkan.']);
         }
