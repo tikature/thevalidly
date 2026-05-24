@@ -92,43 +92,71 @@ class ProcessCertificateJob implements ShouldQueue
      */
     private function generatePdfToCache(Certificate $certificate): void
     {
-        try {
-            $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
-            if (!is_dir($cacheDir)) {
-                mkdir($cacheDir, 0755, true);
+        $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
+        if (!is_dir($cacheDir)) {
+            mkdir($cacheDir, 0755, true);
+        }
+
+        $cachePath   = $cacheDir . DIRECTORY_SEPARATOR . $certificate->verification_token . '.pdf';
+        $institution = Institution::find($this->batch->institution_id);
+        $maxAttempts = 3;
+
+        for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            try {
+                // Warmup view cache sebelum generate PDF.
+                // Di Windows, Laravel kadang gagal rename compiled view (.tmp → .php)
+                // saat file sedang dipakai proses lain. Pre-render view dulu
+                // agar compiled file sudah ada sebelum DomPDF memakainya.
+                view('certificate.pdf', [
+                    'certificate' => $certificate,
+                    'institution' => $institution,
+                    'logoPath'    => $this->assetPaths['logo'] ?? '',
+                    'ttdPath'     => $this->assetPaths['ttd']  ?? '',
+                    'capPath'     => $this->assetPaths['cap']  ?? '',
+                    'bgPath'      => $this->assetPaths['bg']   ?? '',
+                ])->render();
+
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('certificate.pdf', [
+                    'certificate' => $certificate,
+                    'institution' => $institution,
+                    'logoPath'    => $this->assetPaths['logo'] ?? '',
+                    'ttdPath'     => $this->assetPaths['ttd']  ?? '',
+                    'capPath'     => $this->assetPaths['cap']  ?? '',
+                    'bgPath'      => $this->assetPaths['bg']   ?? '',
+                ])
+                ->setPaper([0, 0, 841.89, 595.28])
+                ->setOptions([
+                    'isHtml5ParserEnabled'    => true,
+                    'isRemoteEnabled'         => false,
+                    'defaultFont'             => 'DejaVu Serif',
+                    'dpi'                     => 96,
+                    'isFontSubsettingEnabled' => true,
+                    'isPhpEnabled'            => false,
+                    'chroot'                  => str_replace('\\', '/', realpath(base_path())),
+                ]);
+
+                file_put_contents($cachePath, $pdf->output());
+                unset($pdf);
+                gc_collect_cycles();
+
+                return; // berhasil, keluar dari loop
+
+            } catch (\Exception $e) {
+                $isFileLock = str_contains($e->getMessage(), 'Access is denied')
+                           || str_contains($e->getMessage(), 'rename(')
+                           || str_contains($e->getMessage(), 'No such file or directory');
+
+                if ($isFileLock && $attempt < $maxAttempts) {
+                    // File lock sementara (Windows) — tunggu sebentar lalu retry
+                    Log::info("PDF cache retry {$attempt}/{$maxAttempts} [{$certificate->verification_token}]: " . $e->getMessage());
+                    usleep(200_000 * $attempt); // 200ms, 400ms
+                    continue;
+                }
+
+                // Gagal semua percobaan — log dan lanjut (sertifikat tetap ada di DB)
+                Log::warning("PDF cache gagal [{$certificate->verification_token}]: " . $e->getMessage());
+                return;
             }
-
-            $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $certificate->verification_token . '.pdf';
-
-            $institution = Institution::find($this->batch->institution_id);
-
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('certificate.pdf', [
-                'certificate' => $certificate,
-                'institution' => $institution,
-                'logoPath'    => $this->assetPaths['logo'] ?? '',
-                'ttdPath'     => $this->assetPaths['ttd']  ?? '',
-                'capPath'     => $this->assetPaths['cap']  ?? '',
-                'bgPath'      => $this->assetPaths['bg']   ?? '',
-            ])
-            ->setPaper([0, 0, 841.89, 595.28])
-            ->setOptions([
-                'isHtml5ParserEnabled'    => true,
-                'isRemoteEnabled'         => false,
-                'defaultFont'             => 'DejaVu Serif',
-                'dpi'                     => 96,
-                'isFontSubsettingEnabled' => true,
-                'isPhpEnabled'            => false,
-                'chroot'                  => str_replace('\\', '/', realpath(base_path())),
-            ]);
-
-            file_put_contents($cachePath, $pdf->output());
-            unset($pdf);
-            gc_collect_cycles();
-
-        } catch (\Exception $e) {
-            // PDF gagal di-cache — sertifikat tetap ada di DB.
-            // Download per-sertifikat akan generate on-demand seperti biasa.
-            Log::warning("PDF cache gagal [{$certificate->verification_token}]: " . $e->getMessage());
         }
     }
 
