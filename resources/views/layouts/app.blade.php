@@ -35,6 +35,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/auth.js') }}"></script>
+<script src="https://kit.fontawesome.com/8623d586f1.js" crossorigin="anonymous"></script>
 @stack('scripts')
 </body>
 </html>

@@ -34,41 +34,33 @@
 </div>
 
 {{-- ══ STATISTIK ══ --}}
-<div class="row g-3 mb-4">
-    <div class="col-sm-3">
-        <div class="stat-card">
-            <div class="stat-icon navy">🏛</div>
-            <div>
-                <div class="stat-val">{{ $institutions->count() }}</div>
-                <div class="stat-lbl">Total Lembaga</div>
-            </div>
+<div class="stat-grid-sa" style="margin-bottom:20px">
+    <div class="stat-card">
+        <div class="stat-icon navy"><i class="fa-solid fa-landmark-dome" style="color: rgb(255, 255, 255);"></i></div>
+        <div>
+            <div class="stat-val">{{ $institutions->count() }}</div>
+            <div class="stat-lbl">Total Lembaga</div>
         </div>
     </div>
-    <div class="col-sm-3">
-        <div class="stat-card">
-            <div class="stat-icon green">✅</div>
-            <div>
-                <div class="stat-val">{{ $institutions->where('is_active', true)->count() }}</div>
-                <div class="stat-lbl">Lembaga Aktif</div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fa-solid fa-square-check" style="color: rgb(255, 255, 255);"></i></div>
+        <div>
+            <div class="stat-val">{{ $institutions->where('is_active', true)->count() }}</div>
+            <div class="stat-lbl">Lembaga Aktif</div>
         </div>
     </div>
-    <div class="col-sm-3">
-        <div class="stat-card">
-            <div class="stat-icon gold">👤</div>
-            <div>
-                <div class="stat-val">{{ $institutions->sum('users_count') }}</div>
-                <div class="stat-lbl">Total Akun Admin</div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon gold"><i class="fa-solid fa-users" style="color: rgb(255, 255, 255);"></i></div>
+        <div>
+            <div class="stat-val">{{ $institutions->sum('users_count') }}</div>
+            <div class="stat-lbl">Total Akun Admin</div>
         </div>
     </div>
-    <div class="col-sm-3">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#eef2ff">🛡️</div>
-            <div>
-                <div class="stat-val">{{ $superAdmins->count() }}</div>
-                <div class="stat-lbl">Super Admin</div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:linear-gradient(135deg,#4f46e5,#6366f1)"><i class="fa-solid fa-user-shield" style="color: rgb(255, 255, 255);"></i></div>
+        <div>
+            <div class="stat-val">{{ $superAdmins->count() }}</div>
+            <div class="stat-lbl">Super Admin</div>
         </div>
     </div>
 </div>
