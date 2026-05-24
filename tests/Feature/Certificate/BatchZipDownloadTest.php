@@ -14,8 +14,8 @@ use Tests\TestCase;
  * Feature Test: Batch ZIP Download — skenario respons unik
  *
  * Scope file ini: skenario yang TIDAK ada di CertificateBatchControllerTest:
- * - Batch tanpa sertifikat → 422
- * - Batch tanpa PDF cached → 422
+ * - Batch tanpa sertifikat → 404
+ * - Batch tanpa PDF cached → 409
  * - ZIP filename mengandung tanggal (format Ymd, misal 20260509)
  * - ZIP filename mengandung batch number (format Batch{N})
  * - Content-Type header application/zip
@@ -79,15 +79,15 @@ class BatchZipDownloadTest extends TestCase
     // ── Kondisi error ──────────────────────────────────────────
 
     #[Test]
-    public function returns_422_when_batch_has_no_certificates(): void
+    public function returns_404_when_batch_has_no_certificates(): void
     {
         $this->actingAs($this->admin)
             ->get(route('certificate.batch.zip', $this->batch->batch_token))
-            ->assertStatus(422);
+            ->assertStatus(404);
     }
 
     #[Test]
-    public function returns_422_when_no_pdfs_are_cached(): void
+    public function returns_409_when_no_pdfs_are_cached(): void
     {
         Certificate::factory()->count(2)->create([
             'institution_id' => $this->institution->id,
@@ -98,7 +98,7 @@ class BatchZipDownloadTest extends TestCase
 
         $this->actingAs($this->admin)
             ->get(route('certificate.batch.zip', $this->batch->batch_token))
-            ->assertStatus(422);
+            ->assertStatus(409);
     }
 
     // ── Format filename ────────────────────────────────────────
