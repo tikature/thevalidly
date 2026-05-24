@@ -129,4 +129,56 @@ class RoleMiddlewareTest extends TestCase
         $this->assertEquals(302, $response->getStatusCode());
         $this->assertGuest(); // pastikan sudah logout
     }
+
+    #[Test]
+    public function inactive_user_gets_json_401_on_ajax_request(): void
+    {
+        $institution = Institution::factory()->create();
+        $admin       = User::factory()->adminOf($institution)->inactive()->create();
+        $this->actingAs($admin);
+
+        // Simulasi request AJAX (Accept: application/json)
+        $request = Request::create('/test', 'POST');
+        $request->headers->set('Accept', 'application/json');
+
+        $response = $this->middleware->handle($request, $this->next(), 'admin');
+
+        $this->assertEquals(401, $response->getStatusCode());
+        $this->assertGuest();
+
+        $body = json_decode($response->getContent(), true);
+        $this->assertArrayHasKey('message', $body);
+        $this->assertArrayHasKey('redirect', $body);
+        $this->assertStringContainsString('login', $body['redirect']);
+    }
+
+    #[Test]
+    public function inactive_user_json_response_contains_deactivation_message(): void
+    {
+        $institution = Institution::factory()->create();
+        $admin       = User::factory()->adminOf($institution)->inactive()->create();
+        $this->actingAs($admin);
+
+        $request = Request::create('/test', 'POST');
+        $request->headers->set('Accept', 'application/json');
+
+        $response = $this->middleware->handle($request, $this->next(), 'admin');
+        $body     = json_decode($response->getContent(), true);
+
+        $this->assertStringContainsString('dinonaktifkan', $body['message']);
+    }
+
+    #[Test]
+    public function inactive_user_html_request_still_redirects(): void
+    {
+        $institution = Institution::factory()->create();
+        $admin       = User::factory()->adminOf($institution)->inactive()->create();
+        $this->actingAs($admin);
+
+        // Request biasa (bukan AJAX) — tetap redirect 302
+        $response = $this->middleware->handle($this->makeRequest(), $this->next(), 'admin');
+
+        $this->assertEquals(302, $response->getStatusCode());
+        $this->assertStringContainsString('login', $response->headers->get('Location'));
+    }
 }
