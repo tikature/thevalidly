@@ -17,12 +17,15 @@
     </a>
 </div>
 
-{{-- Flash message --}}
+{{-- Flash message via JS notif (bukan alert HTML agar tidak double dengan notif lain) --}}
 @if(session('success'))
-    <div class="alert border-0 mb-4 d-flex align-items-center gap-2"
-         style="background:#f0fdf4;border-left:4px solid #16a34a !important;border-radius:10px;color:#15803d;font-size:.875rem">
-        <i class="bi bi-check-circle-fill"></i>{{ session('success') }}
-    </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof showNotif === 'function') {
+        showNotif('Berhasil', '{{ addslashes(session('success')) }}', 'success');
+    }
+});
+</script>
 @endif
 
 {{-- Tab navigasi --}}
@@ -187,15 +190,13 @@
                                     <i class="bi bi-box-arrow-up-right"></i>
                                 </a>
                                 {{-- Hapus batch --}}
-                                <form method="POST" action="{{ route('certificate.batch.destroy', $batch->id) }}"
-                                      onsubmit="return confirm('Hapus batch \"{{ addslashes($batch->displayTitle()) }}\" beserta {{ $batch->total }} sertifikat di dalamnya?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm"
-                                            style="background:#fef2f2;color:#b91c1c;border:none;border-radius:6px;font-size:.75rem"
-                                            title="Hapus batch">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                        class="btn btn-sm"
+                                        style="background:#fef2f2;color:#b91c1c;border:none;border-radius:6px;font-size:.75rem"
+                                        title="Hapus batch"
+                                        onclick="confirmDeleteBatch('{{ route('certificate.batch.destroy', $batch->id) }}', '{{ addslashes($batch->displayTitle()) }}', {{ $batch->total }})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -266,5 +267,59 @@
         </div>
     @endif
 @endif
+
+{{-- Modal Konfirmasi Hapus Batch --}}
+<div id="modalDeleteBatch" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;width:min(420px,92vw);padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center">
+        <div style="font-size:2rem;margin-bottom:10px">🗑️</div>
+        <h6 style="font-weight:800;color:#0F1E3C;margin-bottom:6px">Hapus Batch?</h6>
+        <p id="deleteBatchName" style="color:#6b7280;font-size:.85rem;margin-bottom:4px"></p>
+        <p id="deleteBatchCount" style="color:#b91c1c;font-size:.82rem;font-weight:600;margin-bottom:20px"></p>
+        <div class="d-flex gap-2 justify-content-center">
+            <button onclick="closeDeleteBatchModal()"
+                    style="background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#0F1E3C;cursor:pointer">
+                Batal
+            </button>
+            <button id="btnDoDeleteBatch"
+                    style="background:#ef4444;border:none;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">
+                Ya, Hapus
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Form hapus batch tersembunyi --}}
+<form id="formDeleteBatch" method="POST" style="display:none">
+    @csrf
+    @method('DELETE')
+</form>
+
+<script>
+let _deleteBatchUrl = null;
+
+function confirmDeleteBatch(action, title, total) {
+    _deleteBatchUrl = action;
+    document.getElementById('deleteBatchName').textContent = '"' + title + '" akan dihapus permanen.';
+    document.getElementById('deleteBatchCount').textContent = total + ' sertifikat di dalamnya ikut terhapus.';
+    document.getElementById('modalDeleteBatch').style.display = 'flex';
+}
+
+function closeDeleteBatchModal() {
+    _deleteBatchUrl = null;
+    document.getElementById('modalDeleteBatch').style.display = 'none';
+}
+
+document.getElementById('btnDoDeleteBatch').addEventListener('click', function () {
+    if (!_deleteBatchUrl) return;
+    const form = document.getElementById('formDeleteBatch');
+    form.action = _deleteBatchUrl;
+    closeDeleteBatchModal();
+    form.submit();
+});
+
+document.getElementById('modalDeleteBatch').addEventListener('click', function (e) {
+    if (e.target === this) closeDeleteBatchModal();
+});
+</script>
 
 @endsection

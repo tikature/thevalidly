@@ -95,14 +95,14 @@
                     <tr>
                         <th class="px-4 py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:160px">Nama Peserta</th>
                         <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase">Nomor</th>
-                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:180px">
+                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:140px">
                             <a href="{{ route('certificate.history', array_merge(request()->query(), ['sort' => $sort === 'desc' ? 'asc' : 'desc', 'sort_by' => 'event'])) }}"
                                style="color:var(--gold-light);text-decoration:none;display:inline-flex;align-items:center;gap:4px">
                                 Tanggal Acara
                                 <i class="bi bi-arrow-{{ (request('sort_by') === 'event' && $sort === 'desc') ? 'down' : ((request('sort_by') === 'event' && $sort === 'asc') ? 'up' : 'down-up') }}" style="font-size:.72rem;opacity:.6"></i>
                             </a>
                         </th>
-                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:180px">Nama Acara</th>
+                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;width:250px;max-width:250px">Nama Acara</th>
                         <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:140px">
                             <a href="{{ route('certificate.history', array_merge(request()->query(), ['sort' => $sort === 'desc' ? 'asc' : 'desc', 'sort_by' => 'issued'])) }}"
                                style="color:var(--gold-light);text-decoration:none;display:inline-flex;align-items:center;gap:4px">
@@ -110,7 +110,7 @@
                                 <i class="bi bi-arrow-{{ (!request('sort_by') || request('sort_by') === 'issued') && $sort === 'desc' ? 'down' : 'up' }}" style="font-size:.72rem;opacity:.6"></i>
                             </a>
                         </th>
-                        <th class="py-3" style="min-width:130px"></th>
+                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase min-width:130px" >AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,7 +137,7 @@
                         </td>
                         {{-- Nama Acara --}}
                         <td class="py-3" style="max-width:200px">
-                            <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px" title="{{ $cert->event_name }}">
+                            <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:250px" title="{{ $cert->event_name }}">
                                 {{ $cert->event_name }}
                             </div>
                         </td>
@@ -167,16 +167,26 @@
                                         onclick="copyLink('{{ $cert->participantUrl() }}', this)">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
-                                {{-- Hapus --}}
-                                <form method="POST" action="{{ route('certificate.destroy', $cert) }}"
-                                      onsubmit="return confirm('Hapus riwayat sertifikat {{ addslashes($cert->nama) }}?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm"
+                                {{-- Hapus / Info Batch --}}
+                                @if($cert->batch_id)
+                                    {{-- Bagian dari batch — tidak bisa dihapus individual --}}
+                                    <a href="{{ route('certificate.batch.detail', $cert->batch_id) }}"
+                                       class="btn btn-sm d-inline-flex align-items-center gap-1"
+                                       style="background:#f0f4ff;color:var(--navy-mid);border:1.5px solid #dde4f0;border-radius:6px;font-size:.72rem;font-weight:600;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis"
+                                       title="Sertifikat ini bagian dari batch — kelola di halaman detail batch">
+                                        <i class="bi bi-people-fill" style="flex-shrink:0"></i>
+                                        </span>
+                                    </a>
+                                @else
+                                    {{-- Individual — bisa dihapus --}}
+                                    <button type="button"
+                                            class="btn btn-sm"
                                             style="background:#fef2f2;color:#b91c1c;border:none;border-radius:6px;font-size:.75rem"
-                                            title="Hapus riwayat">
+                                            title="Hapus riwayat"
+                                            onclick="confirmDeleteCert('{{ route('certificate.destroy', $cert) }}', '{{ addslashes($cert->nama) }}')">
                                         <i class="bi bi-trash"></i>
                                     </button>
-                                </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -252,6 +262,31 @@
     </div>
 @endif
 
+{{-- Modal Konfirmasi Hapus Sertifikat --}}
+<div id="modalDeleteCert" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
+    <div style="background:#fff;border-radius:16px;width:min(400px,92vw);padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center">
+        <div style="font-size:2rem;margin-bottom:10px">🗑️</div>
+        <h6 style="font-weight:800;color:#0F1E3C;margin-bottom:6px">Hapus Sertifikat?</h6>
+        <p id="deleteCertName" style="color:#6b7280;font-size:.85rem;margin-bottom:20px"></p>
+        <div class="d-flex gap-2 justify-content-center">
+            <button onclick="closeDeleteCertModal()"
+                    style="background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#0F1E3C;cursor:pointer">
+                Batal
+            </button>
+            <button id="btnDoDeleteCert"
+                    style="background:#ef4444;border:none;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">
+                Hapus
+            </button>
+        </div>
+    </div>
+</div>
+
+{{-- Form hapus tersembunyi --}}
+<form id="formDeleteCert" method="POST" style="display:none">
+    @csrf
+    @method('DELETE')
+</form>
+
 <script>
 function copyLink(url, btn) {
     navigator.clipboard.writeText(url).then(() => {
@@ -264,6 +299,31 @@ function copyLink(url, btn) {
         }, 2000);
     });
 }
+
+let _deleteCertUrl = null;
+
+function confirmDeleteCert(action, nama) {
+    _deleteCertUrl = action;
+    document.getElementById('deleteCertName').textContent = 'Sertifikat atas nama "' + nama + '" akan dihapus permanen.';
+    document.getElementById('modalDeleteCert').style.display = 'flex';
+}
+
+function closeDeleteCertModal() {
+    _deleteCertUrl = null;
+    document.getElementById('modalDeleteCert').style.display = 'none';
+}
+
+document.getElementById('btnDoDeleteCert').addEventListener('click', function () {
+    if (!_deleteCertUrl) return;
+    const form = document.getElementById('formDeleteCert');
+    form.action = _deleteCertUrl;
+    closeDeleteCertModal();
+    form.submit();
+});
+
+document.getElementById('modalDeleteCert').addEventListener('click', function (e) {
+    if (e.target === this) closeDeleteCertModal();
+});
 </script>
 
 @endsection
