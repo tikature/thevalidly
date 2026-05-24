@@ -147,7 +147,7 @@ class CertificateBatchController extends Controller
      */
     public function detail(int $batchId)
     {
-        $batch = CertificateBatch::with(['institution'])
+        $batch = CertificateBatch::with(['institution', 'issuedBy'])
             ->where('id', $batchId)
             ->where('institution_id', auth()->user()->institution_id)
             ->firstOrFail();
@@ -235,7 +235,7 @@ class CertificateBatchController extends Controller
         $certificates = $batch->certificates()->get();
 
         if ($certificates->isEmpty()) {
-            return response()->json(['error' => 'Tidak ada sertifikat dalam batch ini.'], 422);
+            return response()->json(['error' => 'Tidak ada sertifikat dalam batch ini.'], 404);
         }
 
         // Nama file ZIP
@@ -290,7 +290,7 @@ class CertificateBatchController extends Controller
             @unlink($tempPath);
             return response()->json([
                 'error' => 'PDF belum siap. Tunggu hingga semua sertifikat selesai diproses, lalu coba lagi.'
-            ], 422);
+            ], 409);
         }
 
         return response()->download($tempPath, $zipFilename, [
@@ -304,5 +304,36 @@ class CertificateBatchController extends Controller
         if (!$relativePath) return '';
         $full = storage_path('app/public/' . $relativePath);
         return str_replace('\\', '/', $full);
+    }
+    public function cancelBatch(string $token)
+    {
+        $batch = CertificateBatch::where('batch_token', $token)
+            ->where('institution_id', auth()->user()->institution_id)
+            ->firstOrFail();
+
+        if ($batch->isDone()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Batch sudah selesai, tidak bisa dibatalkan.',
+            ], 422);
+        }
+
+        $certificates = $batch->certificates()->get();
+        $deleted      = $certificates->count();
+
+        foreach ($certificates as $cert) {
+            $cachePath = storage_path('app/pdf_cache/' . $cert->verification_token . '.pdf');
+            if (file_exists($cachePath)) {
+                @unlink($cachePath);
+            }
+        }
+
+        $batch->certificates()->delete();
+        $batch->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+        ]);
     }
 }
