@@ -62,5 +62,5 @@ Hubungi tim kami untuk mendapatkan akses bagi lembaga Anda:
 ---
 
 <div align="center">
-  <sub>© 2026 Validly · by <a href="https://oemahwebsite.com">Oemah Website Purwokerto</a></sub>
+  <sub>© 2026 Validly · by <a href="https://oemahwebsite.com">Oemah Website Purwokerto (2211104042)</a></sub>
 </div>
