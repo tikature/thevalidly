@@ -312,7 +312,7 @@
 
     {{-- Auto Numbering --}}
     <div class="gen-panel">
-        <div class="gen-panel-title">🔢 Auto Numbering</div>
+        <div class="gen-panel-title"><i class="fa-solid fa-arrow-up-9-1" style="color:var:--navy;"></i> Auto Numbering</div>
         <div class="d-flex align-items-center justify-content-between mb-2">
             <label class="form-label-sm mb-0">Segmen Nomor</label>
             <button type="button" onclick="addSegment()" class="btn-add-seg"><i class="bi bi-plus-lg me-1"></i>Tambah</button>
@@ -375,7 +375,7 @@
                 <span class="perf-badge"><i class="bi bi-speedometer2 me-1"></i><span id="perfText"></span></span>
             </div>
             <a href="https://1drv.ms/x/c/26cb04c16980a1e6/IQBkTqw-eSeWS4gi8znVJZfFAYse5klT7kxBuZzv0qgpxyc?e=I9y04P" target="_blank" style="font-size:0.72rem;color:var(--navy-mid);font-weight:600;text-decoration:none;display:inline-block;margin-top:4px" onclick="event.stopPropagation()">
-                <i class="bi bi-file-earmark-excel me-1"></i>Unduh Contoh Format Excel
+                <i class="fa-solid fa-file-excel" style="color: var:--navy"></i>Unduh Contoh Format Excel
             </a>
             <div id="previewTable"></div>
             <p class="text-muted" style="font-size:.78rem" id="fileInfo"></p>
@@ -405,21 +405,10 @@
 <div class="modal fade" id="modalBatchProgress" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" style="max-width:500px">
         <div class="modal-content border-0 shadow-lg" style="border-radius:16px;overflow:hidden">
-         {{-- Tombol X cancel di pojok kanan atas --}}
-            <div id="batchCancelSection" style="position:absolute;top:12px;right:12px;z-index:10">
-                <button id="btnCancelBatch" onclick="cancelBatch()"
-                        title="Batalkan"
-                        style="width:30px;height:30px;border-radius:50%;border:1.5px solid #fca5a5;
-                               background:#fef2f2;color:#b91c1c;font-size:1.2rem;cursor:pointer;
-                               display:flex;align-items:center;justify-content:center;
-                               transition:all .2s;padding:0;line-height:1">
-                    &times;
-                </button>
-            </div>
             <div class="modal-body p-4">
                 {{-- Header --}}
                 <div class="text-center mb-4">
-                    <div style="font-size:2rem;margin-bottom:8px" id="modalIcon">⚙️</div>
+                    <div style="font-size:2rem;margin-bottom:8px" id="modalIcon"><i class="fa-solid fa-gear" style="color: rgb(255, 255, 255);"></i></div>
                     <h5 class="fw-bold mb-1" style="color:var(--navy)" id="modalTitle">Memproses Sertifikat...</h5>
                     <p class="text-muted mb-0" style="font-size:.82rem" id="modalSubtitle">Harap tunggu, jangan tutup halaman ini.</p>
                 </div>
@@ -459,16 +448,16 @@
 
                 {{-- Info estimasi --}}
                 <div id="etaInfo" class="mb-3 px-3 py-2 rounded d-none" style="background:#f9fbff;border:1px solid #dde4f0;font-size:.8rem;color:var(--navy-mid)">
-                    <div class="d-flex justify-content-between">
+                    <!-- <div class="d-flex justify-content-between">
                         <span>⏱ Estimasi selesai:</span>
                         <strong id="etaText">—</strong>
                     </div>
                     <div class="d-flex justify-content-between mt-1">
                         <span>🚀 Kecepatan:</span>
                         <strong id="speedText">—</strong>
-                    </div>
+                    </div> -->
                     <div class="d-flex justify-content-between mt-1">
-                        <span>⏰ Sudah berjalan:</span>
+                        <span><i class="fa-solid fa-hourglass-half" style="color:var:--navy;"></i> Sudah berjalan:</span>
                         <strong id="elapsedText">—</strong>
                     </div>
                 </div>
@@ -485,13 +474,12 @@
                     </div>
                     <div id="failedEntries" style="font-size:.78rem;color:#374151;max-height:100px;overflow-y:auto;background:#fef2f2;border-radius:8px;padding:8px 12px"></div>
                 </div>
-                
 
                 {{-- Done actions --}}
                 <div id="batchDoneActions" class="d-none">
                     <hr class="my-3">
                     <div class="text-center mb-3">
-                        <div style="font-size:1.5rem">✅</div>
+                        <div style="font-size:1.5rem"><i class="fa-solid fa-file-circle-check" style="color:var:--navy"></i></div>
                         <p class="fw-bold mb-0" style="color:var(--navy);font-size:.9rem" id="doneMessage">Batch selesai diproses!</p>
                         <p class="text-muted mb-0" style="font-size:.78rem" id="doneSummary"></p>
                     </div>
@@ -509,7 +497,7 @@
                     </p>
                     <button class="btn w-100 mb-2" onclick="forceCheckBatch()"
                             style="background:#f59e0b;color:#fff;border:none;border-radius:9px;font-size:.85rem;font-weight:600;padding:10px">
-                        🔄 Cek Ulang Progress
+                        <i class="fa-solid fa-arrows-rotate" style="color:var:--navy;"></i> Cek Ulang Progress
                     </button>
                     <button class="btn w-100" data-bs-dismiss="modal"
                             style="background:#f0f4ff;color:var(--navy-mid);border:none;border-radius:9px;font-size:.85rem;font-weight:600;padding:10px">
@@ -521,56 +509,10 @@
     </div>
 </div>
 
-{{-- Modal Konfirmasi Cancel Batch --}}
-<div class="modal fade" id="modalCancelConfirm" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:380px">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:16px">
-            <div class="modal-body p-4 text-center">
-                <div style="font-size:2rem;margin-bottom:10px">⚠️</div>
-                <h6 style="font-weight:800;color:var(--navy);margin-bottom:6px">Batalkan Proses?</h6>
-                <p style="color:#6b7280;font-size:.85rem;margin-bottom:20px">
-                    Seluruh sertifikat yang sudah terbuat akan <strong>dihapus permanen</strong>.
-                    Tindakan ini tidak dapat dibatalkan.
-                </p>
-                <div class="d-flex gap-2">
-                    <button onclick="closeCancelConfirm()"
-                            style="flex:1;background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;
-                                   padding:10px;font-size:.82rem;font-weight:700;color:var(--navy);cursor:pointer">
-                        Lanjutkan Proses
-                    </button>
-                    <button id="btnConfirmCancel"
-                            style="flex:1;background:#ef4444;border:none;border-radius:8px;
-                                   padding:10px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">
-                        <span id="cancelBtnText">Ya, Batalkan</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 @endsection
 
 @push('scripts')
 <script>
-// ════ GLOBAL AUTH ERROR HANDLER ════
-async function handleAuthError(res) {
-    if (res.status === 401) {
-        const data = await res.json().catch(() => ({}));
-        showNotif(
-            'Sesi Berakhir',
-            data.message || 'Akun Anda tidak aktif atau sesi telah berakhir. Anda akan diarahkan ke halaman login.',
-            'warn',
-            0  // tidak auto-close
-        );
-        setTimeout(() => {
-            window.location.href = data.redirect || '{{ route("login") }}';
-        }, 2500);
-        return true; // sudah ditangani
-    }
-    return false;
-}
-
 // ════ NOTIF ════
 function showNotif(title, messages, type, duration) {
     type = type || 'error'; duration = duration !== undefined ? duration : 5000;
@@ -602,7 +544,7 @@ async function uploadAsset(type, input) {
     const formData = new FormData(); formData.append('type', type); formData.append('file', file);
     try {
         const res = await fetch('{{ route("certificate.asset.upload") }}', { method:'POST', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content}, body:formData });
-        if (await handleAuthError(res)) { input.value=''; return; }
+        if (res.status === 419 || res.status === 401 || res.status === 403) { await handleHttpError(res); input.value=''; return; }
         const data = await res.json();
         if (!res.ok) { showNotif('Upload gagal', data.message||'Error', 'error'); input.value=''; return; }
         if (data.url) showAssetPreview(type, data.url);
@@ -610,7 +552,10 @@ async function uploadAsset(type, input) {
 }
 
 async function removeAsset(type) {
-    await fetch('{{ route("certificate.asset.remove") }}', { method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content}, body:JSON.stringify({type}) }).catch(()=>{});
+    try {
+        const res = await fetch('{{ route("certificate.asset.remove") }}', { method:'POST', headers:{'Content-Type':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content}, body:JSON.stringify({type}) });
+        if (res.status === 419 || res.status === 401 || res.status === 403) { await handleHttpError(res); return; }
+    } catch(e) {}
     clearAssetPreview(type);
 }
 
@@ -674,6 +619,7 @@ document.getElementById('bgLibraryModal').addEventListener('click', function(e) 
 async function loadBgLibrary() {
     try {
         const res  = await fetch('{{ route("background.library.index") }}');
+        if (res.status === 419 || res.status === 401 || res.status === 403) { await handleHttpError(res); return; }
         const data = await res.json();
         bgLibData  = data;
         bgLibLoaded = true;
@@ -734,6 +680,7 @@ async function selectBgFromLibrary(id, url, el) {
             method: 'POST',
             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
         });
+        if (res.status === 419 || res.status === 401 || res.status === 403) { el.classList.remove('selected'); await handleHttpError(res); return; }
         const data = await res.json();
         if (data.success) {
             showAssetPreview('background', data.url);
@@ -760,6 +707,7 @@ async function uploadToLibrary(input) {
             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content },
             body: formData
         });
+        if (res.status === 419 || res.status === 401 || res.status === 403) { await handleHttpError(res); input.value=''; return; }
         const data = await res.json();
         if (!res.ok) {
             if (data.limit_reached) {
@@ -803,6 +751,7 @@ document.getElementById('btnConfirmDelete').addEventListener('click', async () =
             method: 'DELETE',
             headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content }
         });
+        if (res.status === 419 || res.status === 401 || res.status === 403) { await handleHttpError(res); return; }
         if (res.ok) {
             bgLibData.lembaga = bgLibData.lembaga.filter(b => b.id !== id);
             bgLibData.current_count = Math.max(0, bgLibData.current_count - 1);
@@ -1063,14 +1012,14 @@ async function doGenerate(participants) {
         const p=participants[0];
         try {
             const res=await fetch('{{ route("certificate.store") }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({...commonPayload,nama:p.nama,perusahaan:p.perusahaan||null,nomor:p.nomor})});
-            if (await handleAuthError(res)) return;
+            if(res.status===419||res.status===401||res.status===403){await handleHttpError(res);grid.innerHTML='';return;}
             const data=await res.json(); if(!res.ok) throw new Error(data.message||'Gagal');
             renderSingleResult(p, data.pdf_url, data.verification_token);
         } catch(e) { showNotif('Gagal',e.message,'error'); grid.innerHTML=''; }
     } else {
         try {
             const res=await fetch('{{ route("certificate.batch.store") }}',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,'Accept':'application/json'},body:JSON.stringify({...commonPayload,participants})});
-            if (await handleAuthError(res)) return;
+            if(res.status===419||res.status===401||res.status===403){await handleHttpError(res);grid.innerHTML='';return;}
             const data=await res.json(); if(!res.ok) throw new Error(data.message||'Gagal');
             window._currentBatchToken=data.batch_token;
             showBatchProgress(data.batch_token, data.total);
@@ -1136,6 +1085,7 @@ async function pregeneratePdf(token, statusEl) {
     if(statusEl){statusEl.className='pdf-status loading';statusEl.textContent='⏳ Menyiapkan PDF...';}
     try {
         const res=await fetch(`{{ url('/dashboard/certificates/pregenerate') }}/${token}`,{method:'POST',headers:{'X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content,'Accept':'application/json'}});
+        if(res.status===419||res.status===401){await handleHttpError(res);return;}
         const data=await res.json();
         if(res.ok&&data.success){if(statusEl){statusEl.className='pdf-status ready';statusEl.textContent='✓ PDF siap';}}
         else{if(statusEl){statusEl.className='pdf-status';statusEl.textContent='';}}
@@ -1146,7 +1096,9 @@ async function pregeneratePdf(token, statusEl) {
 async function downloadPdf(btn, pdfUrl, nama) {
     btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1" role="status"></span>Menyiapkan...';
     try {
-        const res=await fetch(pdfUrl); if(!res.ok) throw new Error('Gagal mengambil PDF');
+        const res=await fetch(pdfUrl);
+        if(res.status===419||res.status===401||res.status===403){await handleHttpError(res);return;}
+        if(!res.ok) throw new Error('Gagal mengambil PDF');
         const blob=await res.blob(); const url=URL.createObjectURL(blob);
         const a=document.createElement('a'); a.href=url; a.download='sertifikat_'+nama.toLowerCase().replace(/\s+/g,'_')+'.pdf';
         document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
@@ -1181,6 +1133,7 @@ async function downloadZipFromServer() {
 
         if (contentType.includes('application/zip')) {
             // Server berhasil buat ZIP dari cache — langsung download
+            if(res.status===419||res.status===401){await handleHttpError(res);return;}
             if (!res.ok) throw new Error('Server error ' + res.status);
             const blob = await res.blob();
             const url  = URL.createObjectURL(blob);
@@ -1194,6 +1147,7 @@ async function downloadZipFromServer() {
 
         } else {
             // Fallback: ZipArchive tidak tersedia, pakai JSZip client-side
+            if(res.status===419||res.status===401){await handleHttpError(res);return;}
             const data = await res.json();
 
             if (data.error) {
@@ -1252,7 +1206,6 @@ function showBatchProgress(batchToken, total) {
     batchStartTime = Date.now();
     lastProcessed  = 0;
     lastPollTime   = Date.now();
-    isCancelling   = false;
 
     document.getElementById('batchProgressBar').style.width = '0%';
     document.getElementById('batchProgressPct').textContent = '0%';
@@ -1268,10 +1221,6 @@ function showBatchProgress(batchToken, total) {
     document.getElementById('modalIcon').textContent = '⚙️';
     document.getElementById('modalTitle').textContent = 'Memproses Sertifikat...';
     document.getElementById('modalSubtitle').textContent = 'Harap tunggu, jangan tutup halaman ini.';
-     document.getElementById('batchCancelSection').style.display = 'block';
-    document.getElementById('batchDoneActions').classList.add('d-none');
-    document.getElementById('batchStuckActions').classList.add('d-none');
-
 
     // Tip berdasarkan jumlah
     const tipEl = document.getElementById('perfTip');
@@ -1296,6 +1245,8 @@ function formatSeconds(s) {
 async function pollBatchProgress(token) {
     try {
         const res  = await fetch(`{{ url('/dashboard/certificates/batch') }}/${token}/progress`);
+        if(res.status===419||res.status===401){clearInterval(pollingInterval);await handleHttpError(res);return;}
+        if(!res.ok) return;
         const data = await res.json();
 
         const now     = Date.now();
@@ -1338,12 +1289,14 @@ async function pollBatchProgress(token) {
             document.getElementById('elapsedText').textContent = formatSeconds(elapsed);
 
             if (ratePerMin > 0) {
-                document.getElementById('speedText').textContent = ratePerMin + ' sertifikat/menit';
+                const speedEl = document.getElementById('speedText');
+                if (speedEl) speedEl.textContent = ratePerMin + ' sertifikat/menit';
             }
-
+            
             const remaining = data.total - data.processed;
             const etaSec    = ratePerSec > 0 ? Math.ceil(remaining / ratePerSec) : (data.eta_seconds ?? null);
-            document.getElementById('etaText').textContent = etaSec ? formatSeconds(etaSec) : 'Menghitung...';
+            const etaEl = document.getElementById('etaText');
+            if (etaEl) etaEl.textContent = etaSec ? formatSeconds(etaSec) : 'Menghitung...';
 
             const cachedInfo = data.cached_pdf > 0 ? ` · ${data.cached_pdf} PDF siap` : '';
             document.getElementById('batchProgressText').textContent =
@@ -1362,8 +1315,6 @@ async function pollBatchProgress(token) {
         // Selesai
         if (data.status === 'done' || data.status === 'failed') {
             clearInterval(pollingInterval);
-            pollingInterval = null;
-            document.getElementById('batchCancelSection').style.display = 'none';
             document.getElementById('etaInfo').classList.add('d-none');
             document.getElementById('batchDoneActions').classList.remove('d-none');
             document.getElementById('modalIcon').textContent = data.failed > 0 ? '⚠️' : '✅';
@@ -1401,74 +1352,5 @@ async function pollBatchProgress(token) {
         }
     } catch(e) { console.warn('Polling error:', e); }
 }
-
-let isCancelling = false;
-let cancelModalInstance = null;
-
-function cancelBatch() {
-    cancelModalInstance = new bootstrap.Modal(document.getElementById('modalCancelConfirm'));
-    cancelModalInstance.show();
-}
-
-function closeCancelConfirm() {
-    cancelModalInstance?.hide();
-}
-
-document.getElementById('btnConfirmCancel').addEventListener('click', async () => {
-    if (isCancelling || !window._currentBatchToken) return;
-    isCancelling = true;
-
-    const btnText = document.getElementById('cancelBtnText');
-    btnText.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Membatalkan...';
-    document.getElementById('btnConfirmCancel').disabled = true;
-
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-
-    try {
-        const res = await fetch(`{{ url('/dashboard/certificates/batch') }}/${window._currentBatchToken}/cancel`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                'Accept': 'application/json'  // ← TAMBAH INI
-            }
-        });
-
-        // Cek dulu apakah response benar-benar JSON
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('application/json')) {
-            const text = await res.text();
-            console.error('Response bukan JSON:', text);
-            throw new Error(res.status === 401 
-                ? 'Sesi habis, silakan refresh halaman.' 
-                : `Server error ${res.status}`
-            );
-        }
-
-        const data = await res.json();
-
-        cancelModalInstance?.hide();
-        bootstrap.Modal.getInstance(document.getElementById('modalBatchProgress'))?.hide();
-
-        document.getElementById('results').classList.add('d-none');
-        document.getElementById('certGrid').innerHTML = '';
-        document.getElementById('btnDownloadZip').style.display = 'none';
-        window._currentBatchToken = null;
-
-        showNotif(
-            'Proses dibatalkan',
-            data.deleted > 0
-                ? `${data.deleted} sertifikat yang sempat dibuat telah dihapus.`
-                : 'Tidak ada data yang tersimpan.',
-            'warn'
-        );
-    } catch (e) {
-        showNotif('Gagal membatalkan', e.message, 'error');
-        isCancelling = false;
-        document.getElementById('btnConfirmCancel').disabled = false;
-        btnText.textContent = 'Ya, Batalkan';
-    }
-});
 </script>
 @endpush

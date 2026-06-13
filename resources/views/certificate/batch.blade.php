@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('validly-logo1.svg') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Sertifikat — {{ $batch->event_name }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -146,7 +147,11 @@
 
 <nav class="navbar-validly">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="{{ route('landing') }}" class="navbar-brand-text">✦ Validly</a>
+        <a class="navbar-brand navbar-brand-text" href="{{ route('landing') }}">
+            <img src="{{ asset('validly-logo1.svg') }}" alt="Validly" 
+            style="height: 25px; width: 25px; margin-right: 3px; background: var(--gold); border-radius: 7px; padding: 2px;">
+            <span style="color: var(--gold); font-size: 25px; font-family: serif; font-weight: bold;">Validly</span>
+        </a>
         <span style="font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase">
             Daftar Sertifikat
         </span>
@@ -160,7 +165,18 @@
             {{ $batch->institution->name }}
         </div>
         <h1><strong>{{ $batch->event_name }}</strong></h1>
-        <p>{{ $batch->date_start ? $batch->date_start->format('d M Y') : '-' }}{{ $batch->date_end && $batch->date_end->ne($batch->date_start) ? ' – '.$batch->date_end->format('d M Y') : '' }} &middot; {{ $batch->certificates->count() }} peserta &middot; {{ $batch->event_place }}
+        <p>
+            {{ $batch->date_start ? $batch->date_start->format('d M Y') : '-' }}{{ $batch->date_end && $batch->date_end->ne($batch->date_start) ? ' – '.$batch->date_end->format('d M Y') : '' }}
+            &middot; {{ $batch->certificates->count() }} peserta &middot; {{ $batch->event_place }}
+        </p>
+        <div class="mt-4">
+            <a href="{{ route('certificate.batch.zip.public', $batch->batch_token) }}"
+               class="btn-dl-sm"
+               style="display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;padding:12px 24px;font-weight:700;font-size:.875rem;text-decoration:none;transition:all .2s">
+                <i class="bi bi-file-earmark-zip"></i> Download Semua PDF (ZIP)
+            </a>
+        </div>
+        </div>
     </div>
 </div>
 
@@ -182,9 +198,7 @@
                     <div class="cert-meta d-flex align-items-center gap-2 flex-wrap">
                         @if($cert->perusahaan)
                             <span><i class="bi bi-building me-1"></i>{{ $cert->perusahaan }}</span>
-                            <!-- <span style="color:#e5e7eb">·</span> -->
                         @endif
-                        <!-- <span class="cert-nomor">{{ $cert->nomor }}</span> -->
                     </div>
                 </div>
             </div>

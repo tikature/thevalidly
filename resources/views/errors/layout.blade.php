@@ -3,10 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') — Validly</title>
+    <title>@yield('title') - Validly</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('validly-logo1.svg') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/svg+xml" href="{{ asset('validly-logo1.svg') }}">
+    <script src="https://kit.fontawesome.com/8623d586f1.js" crossorigin="anonymous"></script>
     <style>
         :root { --navy:#0f1e3c; --navy-mid:#1a3260; --gold:#c9a84c; --gold-light:#e8d48b; }
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -34,7 +38,7 @@
         }
         .error-code {
             font-family:'Inter',sans-serif;
-            font-size:5rem;
+            font-size:3.5rem;
             font-weight:700;
             color:var(--gold-light);
             line-height:1;
@@ -87,7 +91,7 @@
         .btn-back:hover { background:rgba(255,255,255,.18); color:#fff; }
         .brand {
             font-family:'Playfair Display',serif;
-            font-size:1.1rem;
+            font-size:1.5rem;
             color:var(--gold-light);
             margin-bottom:32px;
             letter-spacing:1px;
@@ -104,7 +108,10 @@
     </style>
 </head>
 <body>
-    <div class="brand">✦ Validly</div>
+    <a class="brand" href="{{ route('landing') }}">
+        <img src="{{ asset('validly-logo1.svg') }}" alt="Validly" style="height:30px;width:30px;margin-right:0px;vertical-align:middle;filter:brightness(0) invert(1)">
+        <span style="color:#ffff;">Validly</span>
+    </a>
     <div class="error-card">
         @yield('content')
         <div class="d-flex gap-3 justify-content-center flex-wrap mt-2">

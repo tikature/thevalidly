@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sertifikat Tidak Ditemukan — Validly</title>
+    <title>Sertifikat Tidak Ditemukan - Validly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('validly-logo1.svg') }}">
     <style>
         :root { --navy:#0f1e3c; --gold:#c9a84c; --gold-light:#e8d48b; }
         * { box-sizing: border-box; }
@@ -21,7 +22,7 @@
         }
         .navbar-brand-text {
             font-family: 'Playfair Display', serif; font-size: 1.4rem;
-            color: var(--gold-light); letter-spacing: 1px; text-decoration: none;
+            color: #fff; letter-spacing: 1px; text-decoration: none;
         }
 
         /* Hero — sama seperti participant */
@@ -42,7 +43,7 @@
             text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 16px;
         }
         .hero h1 {
-            font-family: 'Inter', sans-serif;
+            font-family:'Inter',sans-serif;
             font-size: clamp(1.6rem, 4vw, 2.4rem); color: #fff;
             margin-bottom: 8px; line-height: 1.25;
         }
@@ -130,7 +131,7 @@
 
 <nav class="navbar-validly">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="{{ route('landing') }}" class="navbar-brand-text">✦ Validly</a>
+        <a href="{{ route('landing') }}" class="navbar-brand-text"><img src="{{ asset('validly-logo1.svg') }}" alt="Validly" style="height:30px;width:30px;margin-right:5px;vertical-align:middle;filter:brightness(0) invert(1)">Validly</a>
         <span style="font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase">
             Sertifikat Tidak Ditemukan
         </span>

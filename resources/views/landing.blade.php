@@ -1,19 +1,19 @@
 @extends('layouts.landing')
 
-@section('title', 'Validly — Platform Sertifikat Digital Terpercaya')
+@section('title', 'Validly - Platform Sertifikat Digital Terpercaya')
 
 @section('content')
 
 {{-- NAVBAR --}}
 <nav class="nav-main" id="navbar">
-    <a href="#" class="nav-logo">
-        <div class="nav-logo-icon">V</div>
+    <a href="" class="nav-logo">
+        <img src="{{ asset('validly-logo1.svg') }}" alt="Validly" class="nav-logo-icon" style="object-fit:contain">
         Validly
     </a>
     <div class="nav-links d-none d-lg-flex align-items-center">
+        <a href="#verifikasi">Verifikasi</a>
         <a href="#fitur">Fitur</a>
         <a href="#cara-kerja">Cara Kerja</a>
-        <a href="#verifikasi">Verifikasi</a>
         <a href="#kontak">Kontak</a>
         <a href="{{ route('login') }}" class="btn-nav-cta ms-3">
             Masuk <i class="bi bi-arrow-right"></i>
@@ -32,14 +32,14 @@
 {{-- Mobile Dropdown Menu --}}
 <div id="mobileMenu">
     <nav class="mobile-menu-nav">
+        <a href="#verifikasi" onclick="closeMobileMenu(this)">
+            <i class="bi bi-patch-check"></i> Verifikasi
+        </a>
         <a href="#fitur" onclick="closeMobileMenu(this)">
             <i class="bi bi-grid-3x3-gap"></i> Fitur
         </a>
         <a href="#cara-kerja" onclick="closeMobileMenu(this)">
             <i class="bi bi-play-circle"></i> Cara Kerja
-        </a>
-        <a href="#verifikasi" onclick="closeMobileMenu(this)">
-            <i class="bi bi-patch-check"></i> Verifikasi
         </a>
         <a href="#kontak" onclick="closeMobileMenu(this)">
             <i class="bi bi-envelope"></i> Kontak
@@ -63,7 +63,7 @@
             </h1>
             <p class="hero-p">
                 Validly membantu lembaga pelatihan dan pendidikan menerbitkan sertifikat digital
-                profesional secara massal — dengan nomor otomatis, tanda tangan, cap, dan logo institusi Anda.
+                profesional secara massal, dengan nomor otomatis, tanda tangan, cap, dan logo institusi Anda.
             </p>
             <div class="hero-btns">
                 <a href="#kontak" class="btn-primary-hero">
@@ -104,123 +104,6 @@
     </div>
 </section>
 
-{{-- FITUR --}}
-<section class="section-features" id="fitur">
-    <div class="container">
-        <div class="text-center mb-5">
-            <div class="sec-label">Fitur Platform</div>
-            <h2 class="sec-h2">Semua yang Anda Butuhkan,<br>Dalam Satu Platform</h2>
-            <p class="sec-p mx-auto" style="max-width:500px">Dirancang khusus untuk lembaga yang ingin menerbitkan sertifikat secara cepat, konsisten, dan profesional.</p>
-        </div>
-        <div class="row g-3 mb-3">
-            <div class="col-6 col-md-4">
-                <div class="f-card">
-                    <div class="f-icon">📄</div>
-                    <h5>Generator Massal</h5>
-                    <p>Upload Excel/CSV ratusan peserta, semua sertifikat dibuat otomatis dalam detik.</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4">
-                <div class="f-card">
-                    <div class="f-icon">🔢</div>
-                    <h5>Auto Numbering</h5>
-                    <p>Format nomor bebas dikustomisasi — tambah segmen, atur urutan, pilih pemisah.</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4">
-                <div class="f-card">
-                    <div class="f-icon">✍️</div>
-                    <h5>TTD & Cap Digital</h5>
-                    <p>Upload tanda tangan dan stempel institusi. Atur posisi dan ukuran bebas.</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4">
-                <div class="f-card">
-                    <div class="f-icon">📦</div>
-                    <h5>Download ZIP</h5>
-                    <p>Unduh semua sertifikat dalam satu klik, dikemas rapi dalam file ZIP siap kirim.</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4">
-                <div class="f-card">
-                    <div class="f-icon">🔍</div>
-                    <h5>Verifikasi Online</h5>
-                    <p>QR Code dan halaman verifikasi publik yang dapat diakses siapa saja kapan saja.</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4">
-                <div class="f-card">
-                    <div class="f-icon">🏛</div>
-                    <h5>Multi Lembaga</h5>
-                    <p>Satu platform, banyak lembaga. Super Admin mengelola dari panel terpusat.</p>
-                </div>
-            </div>
-        </div>
-        <div class="row g-3">
-            <div class="col-md-4">
-                <div class="f-card" style="background:var(--light)">
-                    <div class="f-icon" style="background:#fff">🖼️</div>
-                    <h5>Background Custom</h5>
-                    <p>Upload background milik lembaga atau gunakan template default Validly.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="f-card" style="background:var(--light)">
-                    <div class="f-icon" style="background:#fff">🔐</div>
-                    <h5>Akses Berbasis Peran</h5>
-                    <p>Super Admin dan Admin Lembaga punya hak akses berbeda — aman dan terpisah.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="f-card" style="background:var(--light)">
-                    <div class="f-icon" style="background:#fff">⚡</div>
-                    <h5>Tanpa Instalasi</h5>
-                    <p>Semua berjalan di browser. Tidak perlu software tambahan apapun.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-{{-- HOW IT WORKS --}}
-<section class="section-how" id="cara-kerja">
-    <div class="container">
-        <div class="text-center mb-5">
-            <div class="sec-label">Cara Kerja</div>
-            <h2 class="sec-h2">Sertifikat Siap dalam 3 Langkah</h2>
-            <p class="sec-p mx-auto" style="max-width:440px">Dari setup hingga download tidak lebih dari beberapa menit.</p>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="step-card">
-                    <div class="step-n">01</div>
-                    <div>
-                        <h5>Isi Pengaturan</h5>
-                        <p>Masukkan nama acara, tanggal, penandatangan, lalu upload logo, tanda tangan, dan cap institusi.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="step-card">
-                    <div class="step-n">02</div>
-                    <div>
-                        <h5>Input Data Peserta</h5>
-                        <p>Tambahkan peserta manual atau upload Excel/CSV untuk ratusan peserta sekaligus.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="step-card">
-                    <div class="step-n">03</div>
-                    <div>
-                        <h5>Generate & Download</h5>
-                        <p>Klik Generate — pratinjau muncul langsung. Download PNG atau ZIP semua sekaligus.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 {{-- VERIFIKASI --}}
 <section class="section-verify" id="verifikasi">
@@ -269,7 +152,7 @@
                                     Upload foto atau PDF sertifikat
                                 </div>
                                 <div style="font-size:.72rem;color:rgba(255,255,255,.3);margin-top:2px">
-                                    Format: JPG, PNG, PDF — QR code akan di-scan otomatis
+                                    Format: JPG, PNG, PDF, QR code akan di-scan otomatis
                                 </div>
                             </div>
                             <input type="file" id="uploadQrInput" accept="image/*,application/pdf"
@@ -296,6 +179,124 @@
                             <i class="bi bi-info-circle me-1"></i>
                             Kode verifikasi dapat ditemukan di bawah QR Code pada sertifikat.
                         </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- FITUR --}}
+<section class="section-features" id="fitur">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="sec-label">Fitur Platform</div>
+            <h2 class="sec-h2">Semua yang Anda Butuhkan,<br>Dalam Satu Platform</h2>
+            <p class="sec-p mx-auto" style="max-width:500px">Dirancang khusus untuk lembaga yang ingin menerbitkan sertifikat secara cepat, konsisten, dan profesional.</p>
+        </div>
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-4">
+                <div class="f-card">
+                    <div class="f-icon">📄</div>
+                    <h5>Generator Massal</h5>
+                    <p>Upload Excel/CSV ratusan peserta, semua sertifikat dibuat otomatis dalam detik.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="f-card">
+                    <div class="f-icon">🔢</div>
+                    <h5>Auto Numbering</h5>
+                    <p>Format nomor bebas dikustomisasi: tambah segmen, atur urutan, pilih pemisah.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="f-card">
+                    <div class="f-icon">✍️</div>
+                    <h5>TTD & Cap Digital</h5>
+                    <p>Upload tanda tangan dan stempel institusi. Atur posisi dan ukuran bebas.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="f-card">
+                    <div class="f-icon">📦</div>
+                    <h5>Download ZIP</h5>
+                    <p>Unduh semua sertifikat dalam satu klik, dikemas rapi dalam file ZIP siap kirim.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="f-card">
+                    <div class="f-icon">🔍</div>
+                    <h5>Verifikasi Online</h5>
+                    <p>QR Code dan halaman verifikasi publik yang dapat diakses siapa saja kapan saja.</p>
+                </div>
+            </div>
+            <div class="col-6 col-md-4">
+                <div class="f-card">
+                    <div class="f-icon">🏛</div>
+                    <h5>Multi Lembaga</h5>
+                    <p>Satu platform, banyak lembaga. Super Admin mengelola dari panel terpusat.</p>
+                </div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="f-card" style="background:var(--light)">
+                    <div class="f-icon" style="background:#fff">🖼️</div>
+                    <h5>Background Custom</h5>
+                    <p>Upload background milik lembaga atau gunakan template default Validly.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="f-card" style="background:var(--light)">
+                    <div class="f-icon" style="background:#fff">🔐</div>
+                    <h5>Akses Berbasis Peran</h5>
+                    <p>Super Admin dan Admin Lembaga punya hak akses berbeda, aman dan terpisah.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="f-card" style="background:var(--light)">
+                    <div class="f-icon" style="background:#fff">⚡</div>
+                    <h5>Tanpa Instalasi</h5>
+                    <p>Semua berjalan di browser. Tidak perlu software tambahan apapun.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{{-- HOW IT WORKS --}}
+<section class="section-how" id="cara-kerja">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="sec-label">Cara Kerja</div>
+            <h2 class="sec-h2">Sertifikat Siap dalam 3 Langkah</h2>
+            <p class="sec-p mx-auto" style="max-width:440px">Dari setup hingga download tidak lebih dari beberapa menit.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-n">01</div>
+                    <div>
+                        <h5>Isi Pengaturan</h5>
+                        <p>Masukkan nama acara, tanggal, penandatangan, lalu upload logo, tanda tangan, dan cap institusi.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-n">02</div>
+                    <div>
+                        <h5>Input Data Peserta</h5>
+                        <p>Tambahkan peserta manual atau upload Excel/CSV untuk ratusan peserta sekaligus.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="step-card">
+                    <div class="step-n">03</div>
+                    <div>
+                        <h5>Generate & Download</h5>
+                        <p>Klik Generate, pratinjau muncul langsung. Download PNG atau ZIP semua sekaligus.</p>
                     </div>
                 </div>
             </div>
@@ -374,7 +375,7 @@
         <div class="row g-5">
             <div class="col-lg-4">
                 <div class="foot-logo">
-                    <div class="foot-logo-icon">V</div>
+                    <img src="{{ asset('validly-logo1.svg') }}" alt="Validly" class="foot-logo-icon" style="object-fit:contain;background:transparent">
                     Validly
                 </div>
                 <p class="foot-tag">Platform generator sertifikat digital untuk lembaga pelatihan dan pendidikan.</p>
@@ -409,7 +410,7 @@
             </div>
         </div>
         <div class="foot-bottom">
-            <div class="foot-copy">&copy; {{ date('Y') }} <strong>Validly</strong> — Platform Generator Sertifikat Digital.</div>
+            <div class="foot-copy">&copy; {{ date('Y') }} <strong>Validly</strong> -$_ENV Platform Generator Sertifikat Digital.</div>
             <div class="foot-by">by <a href="https://oemahwebsite.com" target="_blank">Oemah Website Purwokerto</a></div>
         </div>
     </div>
@@ -474,11 +475,11 @@
     .nav-main.scrolled #mobileMenuBtn i { color: var(--navy) !important; }
     .nav-main.scrolled .d-lg-none a { color: var(--navy) !important; }
     .nav-logo-icon {
-        width: 32px; height: 32px; background: var(--navy);
+        width: 32px; height: 32px;
         border-radius: 9px; display: flex; align-items: center; justify-content: center;
-        font-size: 0.9rem; color: #fff; font-weight: 900;
+        filter: brightness(0) invert(1); /* putih saat navbar transparan */
     }
-    .nav-main.scrolled .nav-logo-icon { background: var(--navy); }
+    .nav-main.scrolled .nav-logo-icon { filter: none; } /* navy asli saat scroll */
     .nav-links { display: flex; align-items: center; gap: 32px; }
     .nav-links a { color: rgba(255,255,255,0.75); font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: color .2s; }
     .nav-main.scrolled .nav-links a { color: var(--gray); }
@@ -503,13 +504,11 @@
     .hero::before {
         content: '';
         position: absolute; inset: 0;
-        background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
         background-size: 28px 28px;
         pointer-events: none;
     }
     .hero-beam {
-        position: absolute; width: 600px; height: 600px; border-radius: 50%;
-        background: radial-gradient(circle, rgba(255,255,255,.05) 0%, transparent 70%);
+        position: absolute; width: 600px; height: 600px; border-radius: 50%;;
         top: -100px; right: 5%; pointer-events: none;
     }
     .hero-inner {
@@ -694,7 +693,7 @@
     /* ── FOOTER ── */
     footer { background: #04091a; padding: 60px 0 28px; }
     .foot-logo { font-weight: 800; font-size: 1.15rem; color: #fff; display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
-    .foot-logo-icon { width: 28px; height: 28px; background: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: .8rem; color: var(--navy); font-weight: 900; }
+    .foot-logo-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; filter: brightness(0) invert(1); }
     .foot-tag { font-size: .78rem; color: rgba(255,255,255,.25); line-height: 1.65; max-width: 230px; }
     .foot-h { font-size: .67rem; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.2); font-weight: 700; margin-bottom: 14px; }
     .foot-ul { list-style: none; padding: 0; margin: 0; }

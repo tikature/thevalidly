@@ -311,11 +311,11 @@ body {
 <body>
 
 {{-- Background --}}
-@if($institution->background_path)
+@if($certificate->snap_bg_path)
     <div class="bg-layer">
         <img src="{{ $bgPath }}">
     </div>
-@elseif($institution->logo_path)
+@elseif($certificate->snap_logo_path)
     {{-- Logo sebagai watermark jika tidak ada background --}}
     <div style="position:absolute;top:50%;left:50%;
                 transform:translate(-50%,-50%);
@@ -329,30 +329,30 @@ body {
 <div class="main">
 
     {{-- Logo --}}
-    @if($institution->logo_path)
+    @if($certificate->snap_logo_path)
     <div class="logo">
         <img src="{{ $logoPath }}">
     </div>
     @endif
 
     {{-- CERTIFICATE --}}
-    <div class="title {{ !$institution->logo_path ? 'title-no-logo' : '' }}">CERTIFICATE</div>
+    <div class="title {{ !$certificate->snap_logo_path ? 'title-no-logo' : '' }}">CERTIFICATE</div>
 
     {{-- Nama institusi --}}
-    <div class="inst-name {{ !$institution->logo_path ? 'inst-name-no-logo' : '' }}">
+    <div class="inst-name {{ !$certificate->snap_logo_path ? 'inst-name-no-logo' : '' }}">
         {{ $institution->name }}
     </div>
 
     {{-- Divider --}}
-    <div class="divider {{ !$institution->logo_path ? 'divider-no-logo' : '' }}"></div>
+    <div class="divider {{ !$certificate->snap_logo_path ? 'divider-no-logo' : '' }}"></div>
 
     {{-- Nomor --}}
-    <div class="cert-number {{ !$institution->logo_path ? 'cert-number-no-logo' : '' }}">
+    <div class="cert-number {{ !$certificate->snap_logo_path ? 'cert-number-no-logo' : '' }}">
         {{ $certificate->nomor }}
     </div>
 
     {{-- This is to certify that --}}
-    <div class="certify {{ !$institution->logo_path ? 'certify-no-logo' : '' }}">
+    <div class="certify {{ !$certificate->snap_logo_path ? 'certify-no-logo' : '' }}">
         This is to certify that
     </div>
 
@@ -360,7 +360,7 @@ body {
     @php
         $namaDisplay = collect(explode(' ', $certificate->nama))
             ->map(fn($w) => ucfirst(strtolower($w)))->implode(' ');
-        $hasLogo     = (bool) $institution->logo_path;
+        $hasLogo     = (bool) $certificate->snap_logo_path;
         $hasCompany  = (bool) $certificate->perusahaan;
     @endphp
     <div class="participant {{ !$hasLogo ? 'participant-no-logo' : '' }}">
@@ -403,14 +403,14 @@ body {
 </div>
 
 {{-- Cap --}}
-@if($institution->cap_path)
+@if($certificate->snap_cap_path)
 <div class="cap">
     <img src="{{ $capPath }}">
 </div>
 @endif
 
 {{-- TTD --}}
-@if($institution->ttd_path)
+@if($certificate->snap_ttd_path)
 <div class="ttd">
     <img src="{{ $ttdPath }}">
 </div>
