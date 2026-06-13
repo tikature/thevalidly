@@ -70,10 +70,6 @@ class UploadAsetVisualTest extends TestCase
      */
     public function test_admin_dapat_mengunggah_logo_ttd_dan_cap(): void
     {
-        if (!class_exists('Intervention\\Image\\ImageManager')) {
-            $this->markTestSkipped('Intervention Image tidak tersedia di environment ini.');
-        }
-
         foreach (['logo', 'ttd', 'cap'] as $type) {
             $file = $this->fakePng("{$type}.png");
 
@@ -95,10 +91,6 @@ class UploadAsetVisualTest extends TestCase
      */
     public function test_unggahan_aset_berhasil_mengembalikan_url_pratinjau(): void
     {
-        if (!class_exists('Intervention\\Image\\ImageManager')) {
-            $this->markTestSkipped('Intervention Image tidak tersedia di environment ini.');
-        }
-
         $file = $this->fakePng('logo.png');
 
         $response = $this->actingAs($this->adminLembaga)
@@ -136,10 +128,6 @@ class UploadAsetVisualTest extends TestCase
      */
     public function test_mengganti_aset_memperbarui_path_di_database(): void
     {
-        if (!class_exists('Intervention\\Image\\ImageManager')) {
-            $this->markTestSkipped('Intervention Image tidak tersedia di environment ini.');
-        }
-
         $file1 = $this->fakePng('logo1.png');
         $this->actingAs($this->adminLembaga)
             ->postJson(route('certificate.asset.upload'), ['type' => 'logo', 'file' => $file1]);
