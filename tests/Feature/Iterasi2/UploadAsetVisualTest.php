@@ -67,6 +67,7 @@ class UploadAsetVisualTest extends TestCase
     /**
      * AC1: Admin Lembaga dapat mengunggah logo, tanda tangan, dan cap lembaga
      * masing-masing melalui slot yang tersedia di panel aset.
+     * @requires extension gd
      */
     public function test_admin_dapat_mengunggah_logo_ttd_dan_cap(): void
     {
@@ -88,6 +89,7 @@ class UploadAsetVisualTest extends TestCase
     /**
      * AC2: Ketika aset berhasil diunggah, pratinjau gambar langsung tampil
      * di slot yang bersangkutan.
+     * @requires extension gd
      */
     public function test_unggahan_aset_berhasil_mengembalikan_url_pratinjau(): void
     {
@@ -125,6 +127,7 @@ class UploadAsetVisualTest extends TestCase
     /**
      * AC4: Ketika aset diganti dengan file baru, aset sebelumnya otomatis
      * terhapus dan pratinjau diperbarui.
+     * @requires extension gd
      */
     public function test_mengganti_aset_memperbarui_path_di_database(): void
     {
