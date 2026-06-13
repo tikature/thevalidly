@@ -11,10 +11,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sertifikat — {{ Str::title($certificate->nama) }}</title>
+    <title>Sertifikat - {{ Str::title($certificate->nama) }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('validly-logo1.svg') }}">
     <style>
         :root { --navy:#0f1e3c; --gold:#c9a84c; --gold-light:#e8d48b; }
         * { box-sizing:border-box; }
@@ -29,7 +30,7 @@
         }
         .navbar-brand-text {
             font-family:'Playfair Display',serif; font-size:1.4rem;
-            color:var(--gold-light); letter-spacing:1px; text-decoration:none;
+            color: #fff; letter-spacing:1px; text-decoration:none;
         }
         .hero {
             text-align:center; padding:52px 24px 72px;
@@ -81,7 +82,7 @@
             font-size:.65rem; font-weight:700; letter-spacing:2px;
             text-transform:uppercase; color:#9ca3af; margin-bottom:3px;
         }
-        .info-value { font-size:.875rem; font-weight:600; color:var(--navy); }
+        .info-value { font-size:.875rem; font-weight:600; color:var(--navy); overflow-wrap:anywhere; }
 
         /* ── Action buttons ── */
         .action-buttons {
@@ -188,7 +189,7 @@
 
 <nav class="navbar-validly">
     <div class="container d-flex align-items-center justify-content-between">
-        <a href="{{ route('landing') }}" class="navbar-brand-text">✦ Validly</a>
+        <a href="{{ route('landing') }}" class="navbar-brand-text"><img src="{{ asset('validly-logo1.svg') }}" alt="Validly" style="height:30px;width:30px;margin-right:5px;vertical-align:middle;filter:brightness(0) invert(1)">Validly</a>
         <span style="font-size:.72rem;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase">
             Sertifikat Anda
         </span>
@@ -349,13 +350,13 @@
 </div>
 
 {{-- PDF.js --}}
-<link rel="preload" as="fetch" href="{{ route('certificate.pdf', $certificate->verification_token) }}" crossorigin>
+<link rel="preload" as="fetch" href="{{ route('certificate.pdf.public', $certificate->verification_token) }}" crossorigin>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc =
         'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-    const PDF_URL      = '{{ route('certificate.pdf', $certificate->verification_token) }}';
+    const PDF_URL      = '{{ route('certificate.pdf.public', $certificate->verification_token) }}';
     const PDF_FILENAME = 'sertifikat_{{ preg_replace('/[^a-z0-9]+/', '-', strtolower($certificate->nama)) }}.pdf';
 
     // ── Data sertifikat untuk LinkedIn ──────────────────────────
@@ -454,9 +455,18 @@
 
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLinkedIn(); });
 
-    // ── PDF preview & download ───────────────────────────────────
-    const pdfBlobPromise = fetch(PDF_URL)
-        .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.blob(); });
+    // ── PDF fetch — satu kali, dipakai bersama preview & download ─
+    // Fetch dimulai SEGERA (tidak tunggu DOMContentLoaded) agar
+    // PDF sudah dalam perjalanan saat halaman selesai render.
+    // Server akan return dari cache pdf_cache/ jika sudah ada.
+    let cachedBlobUrl = null;
+
+    const pdfBlobPromise = fetch(PDF_URL, { cache: 'force-cache' })
+        .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.blob(); })
+        .then(blob => {
+            cachedBlobUrl = URL.createObjectURL(blob);
+            return blob;
+        });
 
     async function renderPdfPreview() {
         try {
@@ -482,12 +492,15 @@
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Menyiapkan PDF...';
         try {
-            const blob = await pdfBlobPromise;
-            const url  = URL.createObjectURL(blob);
-            const a    = document.createElement('a');
-            a.href = url; a.download = PDF_FILENAME;
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            // Kalau blob sudah siap (preview sudah selesai), download langsung — 0 detik tunggu
+            // Kalau belum, tunggu fetch yang sama (tidak fetch ulang)
+            await pdfBlobPromise;
+            const a = document.createElement('a');
+            a.href     = cachedBlobUrl;
+            a.download = PDF_FILENAME;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         } catch(e) {
             alert('Download gagal: ' + e.message);
         } finally {

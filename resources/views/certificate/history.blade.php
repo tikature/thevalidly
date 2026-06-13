@@ -167,6 +167,13 @@
                                         onclick="copyLink('{{ $cert->participantUrl() }}', this)">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
+                                 {{-- Halaman Verifikasi Peserta --}}
+                                <a href="{{ $cert->verificationUrl() }}" target="_blank"
+                                   class="btn btn-sm"
+                                   style="background:var(--navy-mid);color:var(--gold-light);border:none;border-radius:6px;font-size:.75rem;font-weight:600"
+                                   title="Halaman Verifikasi Peserta">
+                                    <i class="bi bi-check"></i>
+                                </a>
                                 {{-- Hapus / Info Batch --}}
                                 @if($cert->batch_id)
                                     {{-- Bagian dari batch — tidak bisa dihapus individual --}}
@@ -175,7 +182,6 @@
                                        style="background:#f0f4ff;color:var(--navy-mid);border:1.5px solid #dde4f0;border-radius:6px;font-size:.72rem;font-weight:600;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis"
                                        title="Sertifikat ini bagian dari batch — kelola di halaman detail batch">
                                         <i class="bi bi-people-fill" style="flex-shrink:0"></i>
-                                        </span>
                                     </a>
                                 @else
                                     {{-- Individual — bisa dihapus --}}
@@ -262,27 +268,40 @@
     </div>
 @endif
 
-{{-- Modal Konfirmasi Hapus Sertifikat --}}
-<div id="modalDeleteCert" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
-    <div style="background:#fff;border-radius:16px;width:min(400px,92vw);padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center">
-        <div style="font-size:2rem;margin-bottom:10px">🗑️</div>
-        <h6 style="font-weight:800;color:#0F1E3C;margin-bottom:6px">Hapus Sertifikat?</h6>
-        <p id="deleteCertName" style="color:#6b7280;font-size:.85rem;margin-bottom:20px"></p>
-        <div class="d-flex gap-2 justify-content-center">
-            <button onclick="closeDeleteCertModal()"
-                    style="background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#0F1E3C;cursor:pointer">
-                Batal
-            </button>
-            <button id="btnDoDeleteCert"
-                    style="background:#ef4444;border:none;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">
-                Hapus
-            </button>
+{{-- ── Modal Konfirmasi Hapus ── --}}
+<div class="modal fade" id="modalHapus" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+            <div class="modal-body p-4 text-center">
+                <div style="width:56px;height:56px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                    <i class="bi bi-trash3" style="font-size:1.5rem;color:#ef4444"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="color:var(--navy)">Hapus Sertifikat?</h5>
+                <p class="text-muted mb-1" style="font-size:.875rem">Sertifikat atas nama</p>
+                <p class="fw-bold mb-3" style="color:var(--navy-mid);font-size:.95rem" id="hapusNama">—</p>
+                <p class="text-muted" style="font-size:.8rem">
+                    Data sertifikat akan dihapus permanen dan link verifikasi tidak akan bisa diakses lagi.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex gap-2">
+                <button type="button" class="btn flex-fill"
+                        style="background:#f3f4f6;color:#374151;border:none;border-radius:9px;font-weight:600"
+                        data-bs-dismiss="modal">
+                    Batal
+                </button>
+                <button type="button" class="btn flex-fill" id="btnHapusConfirm"
+                        style="background:#ef4444;color:#fff;border:none;border-radius:9px;font-weight:600"
+                        onclick="submitDelete()">
+                    <span id="hapusSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+                    Hapus
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-{{-- Form hapus tersembunyi --}}
-<form id="formDeleteCert" method="POST" style="display:none">
+{{-- Form tersembunyi untuk kirim DELETE request --}}
+<form id="formHapus" method="POST" style="display:none">
     @csrf
     @method('DELETE')
 </form>
@@ -300,30 +319,21 @@ function copyLink(url, btn) {
     });
 }
 
-let _deleteCertUrl = null;
-
-function confirmDeleteCert(action, nama) {
-    _deleteCertUrl = action;
-    document.getElementById('deleteCertName').textContent = 'Sertifikat atas nama "' + nama + '" akan dihapus permanen.';
-    document.getElementById('modalDeleteCert').style.display = 'flex';
+function confirmDeleteCert(actionUrl, nama) {
+    document.getElementById('hapusNama').textContent = nama;
+    document.getElementById('formHapus').action = actionUrl;
+    document.getElementById('hapusSpinner').classList.add('d-none');
+    document.getElementById('btnHapusConfirm').disabled = false;
+    new bootstrap.Modal(document.getElementById('modalHapus')).show();
 }
 
-function closeDeleteCertModal() {
-    _deleteCertUrl = null;
-    document.getElementById('modalDeleteCert').style.display = 'none';
+function submitDelete() {
+    const spinner = document.getElementById('hapusSpinner');
+    const btn     = document.getElementById('btnHapusConfirm');
+    spinner.classList.remove('d-none');
+    btn.disabled = true;
+    document.getElementById('formHapus').submit();
 }
-
-document.getElementById('btnDoDeleteCert').addEventListener('click', function () {
-    if (!_deleteCertUrl) return;
-    const form = document.getElementById('formDeleteCert');
-    form.action = _deleteCertUrl;
-    closeDeleteCertModal();
-    form.submit();
-});
-
-document.getElementById('modalDeleteCert').addEventListener('click', function (e) {
-    if (e.target === this) closeDeleteCertModal();
-});
 </script>
 
 @endsection

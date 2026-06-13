@@ -7,6 +7,8 @@ use App\Models\CertificateBatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class CertificateController extends Controller
 {
@@ -36,10 +38,9 @@ class CertificateController extends Controller
             'institution_id' => auth()->user()->institution_id,
             'issued_by'      => auth()->id(),
         ]);
+        // Snapshot asset paths lembaga agar tidak berpengaruh jika admin mengganti/hapus asset nanti
+        $cert->snapshotAssets(auth()->user()->institution);
         // QR code di-generate otomatis via model event `created`
-
-        // Pre-cache PDF agar download lebih cepat
-        $this->cachePdf($cert);
 
         return response()->json([
             'success'            => true,
@@ -66,6 +67,7 @@ class CertificateController extends Controller
         ]);
 
         $institutionId = auth()->user()->institution_id;
+        $institution   = auth()->user()->institution;
         $certificates  = [];
 
         foreach ($request->participants as $p) {
@@ -83,10 +85,9 @@ class CertificateController extends Controller
                 'signer_name'    => $request->signer_name,
                 'signer_title'   => $request->signer_title,
             ]);
+            // Snapshot asset paths lembaga agar tidak berpengaruh jika admin mengganti/hapus asset nanti
+            $cert->snapshotAssets($institution);
             // QR code di-generate otomatis via model event `created`
-
-            // Pre-cache PDF agar download lebih cepat
-            $this->cachePdf($cert);
 
             $certificates[] = [
                 'nama'               => $cert->nama,
@@ -125,14 +126,7 @@ class CertificateController extends Controller
             Storage::disk('local')->put($cachePath, $pdf->output());
             return response()->json(['success' => true, 'cached' => false]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Pregenerate PDF gagal: ' . $e->getMessage(), [
-                'token' => $token,
-                'trace' => $e->getTraceAsString(),
-            ]);
-            return response()->json([
-                'success' => false,
-                'error'   => 'Gagal membuat PDF. Silakan coba lagi atau hubungi administrator.',
-            ], 500);
+            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
 
@@ -166,43 +160,6 @@ class CertificateController extends Controller
         return $pdf->download($filename);
     }
 
-    /**
-     * Cache PDF ke storage/app/pdf_cache/ agar download lebih cepat.
-     * Gagal diam-diam (hanya log) — tidak mengganggu response ke user.
-     */
-    private function cachePdf(Certificate $certificate): void
-    {
-        try {
-            $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
-            if (!is_dir($cacheDir)) {
-                mkdir($cacheDir, 0755, true);
-            }
-
-            $cachePath   = $cacheDir . DIRECTORY_SEPARATOR . $certificate->verification_token . '.pdf';
-            $institution = $certificate->institution;
-
-            // View warmup — hindari race condition rename .tmp di Windows
-            view('certificate.pdf', [
-                'certificate' => $certificate,
-                'institution' => $institution,
-                'logoPath'    => $this->resolveAssetPath($institution->logo_path),
-                'ttdPath'     => $this->resolveAssetPath($institution->ttd_path),
-                'capPath'     => $this->resolveAssetPath($institution->cap_path),
-                'bgPath'      => $this->resolveAssetPath($institution->background_path),
-            ])->render();
-
-            $pdf = $this->buildPdf($certificate, $institution);
-            file_put_contents($cachePath, $pdf->output());
-            unset($pdf);
-            gc_collect_cycles();
-
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::warning(
-                'cachePdf gagal [' . $certificate->verification_token . ']: ' . $e->getMessage()
-            );
-        }
-    }
-
     private function buildPdf(Certificate $certificate, $institution)
     {
         // Pastikan QR code sudah ada sebelum render PDF
@@ -214,10 +171,13 @@ class CertificateController extends Controller
         return \Barryvdh\DomPDF\Facade\Pdf::loadView('certificate.pdf', [
             'certificate' => $certificate,
             'institution' => $institution,
-            'logoPath'    => $this->resolveAssetPath($institution->logo_path),
-            'ttdPath'     => $this->resolveAssetPath($institution->ttd_path),
-            'capPath'     => $this->resolveAssetPath($institution->cap_path),
-            'bgPath'      => $this->resolveAssetPath($institution->background_path),
+            // Gunakan snap paths dari certificate — bukan dari institution saat ini.
+            // Ini memastikan PDF selalu render dengan asset yang sama seperti saat
+            // sertifikat pertama kali digenerate, meski admin sudah mengganti asset.
+            'logoPath'    => $certificate->resolvedLogoPath(),
+            'ttdPath'     => $certificate->resolvedTtdPath(),
+            'capPath'     => $certificate->resolvedCapPath(),
+            'bgPath'      => $certificate->resolvedBgPath(),
         ])
         ->setPaper([0, 0, 841.89, 595.28])
         ->setOptions([
@@ -244,16 +204,29 @@ class CertificateController extends Controller
         $institution = auth()->user()->institution;
         $type        = $request->type;
         $column      = $type . '_path';
+        $file        = $request->file('file');
+        $manager     = new ImageManager(new Driver());
+        $directory   = 'institutions/' . $institution->id . '/' . $type;
+        $filename    = Str::random(40);
 
-        if ($institution->$column) {
-            Storage::disk('public')->delete($institution->$column);
+        // JANGAN hapus file lama — file lama mungkin masih direferensikan oleh
+        // snap_*_path pada sertifikat-sertifikat yang sudah digenerate sebelumnya.
+        // Cukup simpan file baru dan perbarui pointer institution.
+        if ($type === 'background') {
+            // Background: resize max 1920x1080, simpan sebagai JPG quality 75
+            $image   = $manager->read($file->getRealPath());
+            $image->scaleDown(width: 1920, height: 1080);
+            $encoded = $image->toJpeg(quality: 75);
+            $path    = $directory . '/' . $filename . '.jpg';
+        } else {
+            // TTD / Cap / Logo: pertahankan transparansi PNG, resize max 1000x1000
+            $image   = $manager->read($file->getRealPath());
+            $image->scaleDown(width: 1000, height: 1000);
+            $encoded = $image->toPng();
+            $path    = $directory . '/' . $filename . '.png';
         }
 
-        $path = $request->file('file')->store(
-            'institutions/' . $institution->id . '/' . $type,
-            'public'
-        );
-
+        Storage::disk('public')->put($path, $encoded);
         $institution->update([$column => $path]);
 
         return response()->json([
@@ -271,8 +244,10 @@ class CertificateController extends Controller
         $type        = $request->type;
         $column      = $type . '_path';
 
+        // JANGAN hapus file fisik — hanya kosongkan pointer institution.
+        // File fisik tetap ada di storage agar snap_*_path pada sertifikat
+        // yang sudah digenerate sebelumnya masih bisa me-load asset tersebut.
         if ($institution->$column) {
-            Storage::disk('public')->delete($institution->$column);
             $institution->update([$column => null]);
         }
 
@@ -298,7 +273,7 @@ class CertificateController extends Controller
         $sortBy        = $request->sort_by === 'event' ? 'date_start' : 'issued_at';
 
         $certificates = Certificate::forInstitution($institutionId)
-            ->with(['issuedBy', 'batch'])
+            ->with('issuedBy')
             ->when($request->search, fn($q) => $q->search($request->search))
             ->orderBy($sortBy, $sort)
             ->paginate(20)

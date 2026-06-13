@@ -14,7 +14,9 @@
 </head>
 <body>
     <div class="login-card">
-        <div class="login-brand">✦ Validly</div>
+        <div class="login-brand">
+            <img src="{{ asset('validly-logo1.svg') }}" alt="Validly" style="height:35px;width:35px;margin-right:0px;vertical-align:middle"> Validly
+        </div>
         <div class="login-sub">@yield('subtitle')</div>
 
         {{-- Slot untuk pesan error/success --}}

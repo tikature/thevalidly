@@ -16,19 +16,21 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buat akun Super Admin default
+        // Buat akun Super Admin utama (is_primary = true)
+        // Akun ini tidak dapat dinonaktifkan atau dihapus oleh siapapun.
         // GANTI email & password sebelum deploy ke production!
         User::firstOrCreate(
             ['email' => 'superadmin@validly.id'],
             [
-                'name'     => 'Super Admin Validly',
-                'password' => Hash::make('superadmin123'), // ganti password ini!
-                'role'     => 'super_admin',
-                'is_active' => true,
+                'name'       => 'Super Admin Validly',
+                'password'   => Hash::make('superadmin123'), // ganti password ini!
+                'role'       => 'super_admin',
+                'is_active'  => true,
+                'is_primary' => true,
             ]
         );
 
-        $this->command->info('Super Admin berhasil dibuat:');
+        $this->command->info('Super Admin utama berhasil dibuat:');
         $this->command->info('  Email   : superadmin@validly.id');
         $this->command->info('  Password: superadmin123');
         $this->command->warn('  ⚠ Segera ganti password setelah login pertama!');

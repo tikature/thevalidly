@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BackgroundLibrary;
 use App\Models\Institution;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 
@@ -18,11 +20,17 @@ class SuperAdminController extends Controller
             ->latest()
             ->get();
 
+        // Akun utama (is_primary) selalu di posisi pertama, sisanya diurutkan by created_at
         $superAdmins = User::where('role', 'super_admin')
-            ->latest()
+            ->orderByDesc('is_primary')
+            ->oldest()
             ->get();
 
-        return view('superadmin.index', compact('institutions', 'superAdmins'));
+        $systemBackgrounds = BackgroundLibrary::system()
+            ->orderBy('name')
+            ->get();
+
+        return view('superadmin.index', compact('institutions', 'superAdmins', 'systemBackgrounds'));
     }
 
     // ─── Tambah Super Admin ────────────────────────────────────
@@ -53,9 +61,29 @@ class SuperAdminController extends Controller
             'plain_password' => $request->superadmin_password,
             'role'           => 'super_admin',
             'institution_id' => null,
+            'is_primary'     => false, // Akun baru tidak pernah menjadi akun utama
         ]);
 
         return back()->with('success', 'Super Admin baru berhasil ditambahkan.');
+    }
+
+    // ─── Hapus Super Admin ─────────────────────────────────────
+
+    public function destroySuperAdmin(User $user)
+    {
+        // Cegah super admin menghapus dirinya sendiri
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
+        }
+
+        // Cegah menghapus akun utama
+        if ($user->isPrimarySuperAdmin()) {
+            return back()->with('error', 'Akun Super Admin utama tidak dapat dihapus.');
+        }
+
+        $name = $user->name;
+        $user->delete();
+        return back()->with('success', "Akun Super Admin \"{$name}\" berhasil dihapus.");
     }
 
     // ─── Tambah Lembaga ────────────────────────────────────────
@@ -224,7 +252,7 @@ class SuperAdminController extends Controller
         return back()->with('success', "Admin \"{$user->name}\" berhasil diperbarui.");
     }
 
-    // ─── Toggle & Destroy ──────────────────────────────────────
+    // ─── Toggle & Destroy Lembaga/Admin ───────────────────────
 
     public function toggleInstitution(Institution $institution)
     {
@@ -248,14 +276,49 @@ class SuperAdminController extends Controller
         return back()->with('success', 'Akun admin berhasil dihapus.');
     }
 
-    public function destroySuperAdmin(User $user)
+    // ─── System Background Library ─────────────────────────────
+
+    public function indexBackgrounds()
     {
-        // Cegah super admin menghapus dirinya sendiri
-        if ($user->id === auth()->id()) {
-            return back()->with('error', 'Tidak dapat menghapus akun Anda sendiri.');
+        $systemBackgrounds = BackgroundLibrary::system()->orderBy('name')->get();
+        return view('superadmin.index', [
+            'institutions'      => Institution::with('users')->withCount('users')->latest()->get(),
+            'superAdmins'       => User::where('role', 'super_admin')->orderByDesc('is_primary')->oldest()->get(),
+            'systemBackgrounds' => $systemBackgrounds,
+        ]);
+    }
+
+    public function storeBackground(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,jpg,png|max:2048',
+            'name' => 'nullable|string|max:100',
+        ]);
+
+        $file = $request->file('file');
+        $name = $request->input('name') ?: pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $path = $file->store('backgrounds/system', 'public');
+
+        BackgroundLibrary::create([
+            'institution_id' => null,
+            'name'           => $name,
+            'path'           => $path,
+            'is_system'      => true,
+        ]);
+
+        return back()->with('success', "Background \"$name\" berhasil ditambahkan ke library sistem.");
+    }
+
+    public function destroyBackground(BackgroundLibrary $background)
+    {
+        if (!$background->is_system) {
+            return back()->with('error', 'Hanya background sistem yang dapat dihapus melalui panel ini.');
         }
 
-        $user->delete();
-        return back()->with('success', 'Akun Super Admin berhasil dihapus.');
+        Storage::disk('public')->delete($background->path);
+        $name = $background->name;
+        $background->delete();
+
+        return back()->with('success', "Background \"$name\" berhasil dihapus dari library sistem.");
     }
 }
