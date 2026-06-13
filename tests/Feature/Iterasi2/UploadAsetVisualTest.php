@@ -67,10 +67,13 @@ class UploadAsetVisualTest extends TestCase
     /**
      * AC1: Admin Lembaga dapat mengunggah logo, tanda tangan, dan cap lembaga
      * masing-masing melalui slot yang tersedia di panel aset.
-     * @requires extension gd
      */
     public function test_admin_dapat_mengunggah_logo_ttd_dan_cap(): void
     {
+        if (!class_exists('Intervention\\Image\\ImageManager')) {
+            $this->markTestSkipped('Intervention Image tidak tersedia di environment ini.');
+        }
+
         foreach (['logo', 'ttd', 'cap'] as $type) {
             $file = $this->fakePng("{$type}.png");
 
@@ -89,10 +92,13 @@ class UploadAsetVisualTest extends TestCase
     /**
      * AC2: Ketika aset berhasil diunggah, pratinjau gambar langsung tampil
      * di slot yang bersangkutan.
-     * @requires extension gd
      */
     public function test_unggahan_aset_berhasil_mengembalikan_url_pratinjau(): void
     {
+        if (!class_exists('Intervention\\Image\\ImageManager')) {
+            $this->markTestSkipped('Intervention Image tidak tersedia di environment ini.');
+        }
+
         $file = $this->fakePng('logo.png');
 
         $response = $this->actingAs($this->adminLembaga)
@@ -127,10 +133,13 @@ class UploadAsetVisualTest extends TestCase
     /**
      * AC4: Ketika aset diganti dengan file baru, aset sebelumnya otomatis
      * terhapus dan pratinjau diperbarui.
-     * @requires extension gd
      */
     public function test_mengganti_aset_memperbarui_path_di_database(): void
     {
+        if (!class_exists('Intervention\\Image\\ImageManager')) {
+            $this->markTestSkipped('Intervention Image tidak tersedia di environment ini.');
+        }
+
         $file1 = $this->fakePng('logo1.png');
         $this->actingAs($this->adminLembaga)
             ->postJson(route('certificate.asset.upload'), ['type' => 'logo', 'file' => $file1]);
