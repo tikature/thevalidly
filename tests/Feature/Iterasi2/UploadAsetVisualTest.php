@@ -46,6 +46,24 @@ class UploadAsetVisualTest extends TestCase
         ]);
     }
 
+
+    /**
+     * Buat file PNG valid minimal (1x1 pixel) tanpa butuh ekstensi GD.
+     * PNG header minimal yang valid untuk melewati validasi mimetypes.
+     */
+    private function fakePng(string $name = 'test.png'): \Illuminate\Http\UploadedFile
+    {
+        // PNG 1x1 pixel transparan — binary minimal yang valid
+        $png = base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        );
+
+        $path = tempnam(sys_get_temp_dir(), 'png_') . '.png';
+        file_put_contents($path, $png);
+
+        return new \Illuminate\Http\UploadedFile($path, $name, 'image/png', null, true);
+    }
+
     /**
      * AC1: Admin Lembaga dapat mengunggah logo, tanda tangan, dan cap lembaga
      * masing-masing melalui slot yang tersedia di panel aset.
@@ -53,7 +71,7 @@ class UploadAsetVisualTest extends TestCase
     public function test_admin_dapat_mengunggah_logo_ttd_dan_cap(): void
     {
         foreach (['logo', 'ttd', 'cap'] as $type) {
-            $file = UploadedFile::fake()->image("{$type}.png", 500, 500);
+            $file = $this->fakePng("{$type}.png");
 
             $response = $this->actingAs($this->adminLembaga)
                 ->postJson(route('certificate.asset.upload'), [
@@ -73,7 +91,7 @@ class UploadAsetVisualTest extends TestCase
      */
     public function test_unggahan_aset_berhasil_mengembalikan_url_pratinjau(): void
     {
-        $file = UploadedFile::fake()->image('logo.png', 500, 500);
+        $file = $this->fakePng('logo.png');
 
         $response = $this->actingAs($this->adminLembaga)
             ->postJson(route('certificate.asset.upload'), [
@@ -110,14 +128,14 @@ class UploadAsetVisualTest extends TestCase
      */
     public function test_mengganti_aset_memperbarui_path_di_database(): void
     {
-        $file1 = UploadedFile::fake()->image('logo1.png', 500, 500);
+        $file1 = $this->fakePng('logo1.png');
         $this->actingAs($this->adminLembaga)
             ->postJson(route('certificate.asset.upload'), ['type' => 'logo', 'file' => $file1]);
 
         $this->institution->refresh();
         $pathLama = $this->institution->logo_path;
 
-        $file2 = UploadedFile::fake()->image('logo2.png', 500, 500);
+        $file2 = $this->fakePng('logo2.png');
         $this->actingAs($this->adminLembaga)
             ->postJson(route('certificate.asset.upload'), ['type' => 'logo', 'file' => $file2]);
 
@@ -131,7 +149,7 @@ class UploadAsetVisualTest extends TestCase
      */
     public function test_admin_dapat_menghapus_aset_dan_slot_kembali_kosong(): void
     {
-        $file = UploadedFile::fake()->image('logo.png', 500, 500);
+        $file = $this->fakePng('logo.png');
         $this->actingAs($this->adminLembaga)
             ->postJson(route('certificate.asset.upload'), ['type' => 'logo', 'file' => $file]);
 
@@ -252,7 +270,7 @@ class UploadAsetVisualTest extends TestCase
             ]);
         }
 
-        $file = UploadedFile::fake()->image('bg_extra.png', 100, 100);
+        $file = $this->fakePng("bg_extra.png");
 
         $response = $this->actingAs($this->adminLembaga)
             ->postJson(route('background.library.store'), [
