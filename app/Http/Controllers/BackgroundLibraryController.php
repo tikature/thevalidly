@@ -7,6 +7,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 /**
  * BackgroundLibraryController
@@ -66,9 +68,15 @@ class BackgroundLibraryController extends Controller
             ], 422);
         }
 
-        $file = $request->file('file');
-        $name = $request->input('name') ?: pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $path = $file->store('backgrounds/library/' . $institution->id, 'public');
+        $file    = $request->file('file');
+        $name    = $request->input('name') ?: pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $manager = new ImageManager(new Driver());
+        $image   = $manager->read($file->getRealPath());
+        $image->scaleDown(width: 1920, height: 1080);
+        $encoded  = $image->toJpeg(quality: 75);
+        $filename = Str::random(40) . '.jpg';
+        $path     = 'backgrounds/library/' . $institution->id . '/' . $filename;
+        Storage::disk('public')->put($path, $encoded);
 
         $bg = BackgroundLibrary::create([
             'institution_id' => $institution->id,
@@ -85,6 +93,8 @@ class BackgroundLibraryController extends Controller
 
     /**
      * Hapus background lembaga dari library.
+     * File fisik TIDAK dihapus — mungkin masih direferensikan oleh snap_bg_path
+     * pada sertifikat yang sudah digenerate sebelumnya.
      */
     public function destroy(BackgroundLibrary $background): JsonResponse
     {
@@ -93,7 +103,8 @@ class BackgroundLibraryController extends Controller
             abort(403);
         }
 
-        Storage::disk('public')->delete($background->path);
+        // Hanya hapus record di DB — file fisik tetap ada di storage
+        // agar sertifikat lama yang memakai background ini tetap bisa di-render.
         $background->delete();
 
         return response()->json(['success' => true]);

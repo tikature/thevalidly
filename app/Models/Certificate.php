@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Institution;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,6 +18,9 @@ class Certificate extends Model
         'event_name', 'date_start', 'date_end', 'event_place',
         'signer_name', 'signer_title', 'cert_desc',
         'verification_token', 'qr_code', 'issued_at',
+        // Snapshot asset paths — disimpan saat generate agar tidak berubah
+        // meski admin lembaga mengganti/menghapus asset di kemudian hari.
+        'snap_logo_path', 'snap_ttd_path', 'snap_cap_path', 'snap_bg_path',
     ];
 
     protected $casts = [
@@ -105,6 +109,51 @@ class Certificate extends Model
 
         return $this->qr_code;
     }
+
+    // ── Snapshot Asset Helpers ───────────────────────────────────
+
+    /**
+     * Ambil snapshot asset paths dari institution dan simpan ke record ini.
+     * Dipanggil tepat setelah Certificate::create() agar data terkunci
+     * terlepas dari perubahan asset institution di masa depan.
+     */
+    public function snapshotAssets(Institution $institution): void
+    {
+        static::withoutEvents(function () use ($institution) {
+            $this->update([
+                'snap_logo_path' => $institution->logo_path,
+                'snap_ttd_path'  => $institution->ttd_path,
+                'snap_cap_path'  => $institution->cap_path,
+                'snap_bg_path'   => $institution->background_path,
+            ]);
+        });
+    }
+
+    /**
+     * Konversi relative storage path ke absolute path untuk DomPDF.
+     * Cocok untuk disk 'public' (storage/app/public/) maupun
+     * background system (public/storage/backgrounds/system/).
+     */
+    public static function resolveStoragePath(?string $relativePath): string
+    {
+        if (!$relativePath) return '';
+
+        // Background sistem disimpan di public/storage/ (bukan storage/app/public/)
+        // path-nya selalu diawali dengan "backgrounds/system/"
+        if (str_starts_with($relativePath, 'backgrounds/system/')) {
+            $full = public_path('storage/' . $relativePath);
+        } else {
+            // Asset upload lembaga: logo, ttd, cap, background lembaga
+            $full = storage_path('app/public/' . $relativePath);
+        }
+
+        return str_replace('\\', '/', $full);
+    }
+
+    public function resolvedLogoPath(): string { return self::resolveStoragePath($this->snap_logo_path); }
+    public function resolvedTtdPath(): string  { return self::resolveStoragePath($this->snap_ttd_path); }
+    public function resolvedCapPath(): string  { return self::resolveStoragePath($this->snap_cap_path); }
+    public function resolvedBgPath(): string   { return self::resolveStoragePath($this->snap_bg_path); }
 
     // ── Scopes ──────────────────────────────────────────────────
     public function scopeForInstitution($query, int $institutionId)

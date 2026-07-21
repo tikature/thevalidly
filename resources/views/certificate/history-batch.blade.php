@@ -17,16 +17,7 @@
     </a>
 </div>
 
-{{-- Flash message via JS notif (bukan alert HTML agar tidak double dengan notif lain) --}}
-@if(session('success'))
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    if (typeof showNotif === 'function') {
-        showNotif('Berhasil', '{{ addslashes(session('success')) }}', 'success');
-    }
-});
-</script>
-@endif
+{{-- Flash ditangani oleh partials/alerts yang di-include layouts/app — tidak perlu duplikat di sini --}}
 
 {{-- Tab navigasi --}}
 <div class="d-flex gap-2 mb-4">
@@ -112,8 +103,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <i class="bi bi-arrow-{{ (!request('sort_by') || request('sort_by') === 'issued') && $sort === 'asc' ? 'up' : 'down' }}" style="font-size:.72rem;opacity:.6"></i>
                             </a>
                         </th>
-                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:180px">Status</th>
-                        <th class="py-3" style="min-width:160px"></th>
+                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;min-width:100px">Status</th>
+                        <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase; min-width:160px">AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -190,11 +181,14 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <i class="bi bi-box-arrow-up-right"></i>
                                 </a>
                                 {{-- Hapus batch --}}
-                                <button type="button"
-                                        class="btn btn-sm"
+                                <button type="button" class="btn btn-sm"
                                         style="background:#fef2f2;color:#b91c1c;border:none;border-radius:6px;font-size:.75rem"
                                         title="Hapus batch"
-                                        onclick="confirmDeleteBatch('{{ route('certificate.batch.destroy', $batch->id) }}', '{{ addslashes($batch->displayTitle()) }}', {{ $batch->total }})">
+                                        onclick="confirmDeleteBatch(
+                                            '{{ route('certificate.batch.destroy', $batch->id) }}',
+                                            '{{ addslashes($batch->displayTitle()) }}',
+                                            {{ $batch->total }}
+                                        )">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </div>
@@ -268,58 +262,62 @@ document.addEventListener('DOMContentLoaded', function () {
     @endif
 @endif
 
-{{-- Modal Konfirmasi Hapus Batch --}}
-<div id="modalDeleteBatch" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(10,20,50,.55);backdrop-filter:blur(3px);align-items:center;justify-content:center">
-    <div style="background:#fff;border-radius:16px;width:min(420px,92vw);padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.25);text-align:center">
-        <div style="font-size:2rem;margin-bottom:10px">🗑️</div>
-        <h6 style="font-weight:800;color:#0F1E3C;margin-bottom:6px">Hapus Batch?</h6>
-        <p id="deleteBatchName" style="color:#6b7280;font-size:.85rem;margin-bottom:4px"></p>
-        <p id="deleteBatchCount" style="color:#b91c1c;font-size:.82rem;font-weight:600;margin-bottom:20px"></p>
-        <div class="d-flex gap-2 justify-content-center">
-            <button onclick="closeDeleteBatchModal()"
-                    style="background:#f0f4ff;border:1.5px solid #dde4f0;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#0F1E3C;cursor:pointer">
-                Batal
-            </button>
-            <button id="btnDoDeleteBatch"
-                    style="background:#ef4444;border:none;border-radius:8px;padding:9px 20px;font-size:.82rem;font-weight:700;color:#fff;cursor:pointer">
-                Ya, Hapus
-            </button>
+{{-- ── Modal Konfirmasi Hapus Batch ── --}}
+<div class="modal fade" id="modalHapusBatch" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px">
+        <div class="modal-content" style="border-radius:16px;border:none;box-shadow:0 20px 60px rgba(0,0,0,.15)">
+            <div class="modal-body p-4 text-center">
+                <div style="width:56px;height:56px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+                    <i class="bi bi-trash3" style="font-size:1.5rem;color:#ef4444"></i>
+                </div>
+                <h5 class="fw-bold mb-2" style="color:var(--navy)">Hapus Batch?</h5>
+                <p class="text-muted mb-1" style="font-size:.875rem">Batch</p>
+                <p class="fw-bold mb-2" style="color:var(--navy-mid);font-size:.95rem" id="hapusNamaBatch">—</p>
+                <p class="text-muted mb-3" style="font-size:.8rem">
+                    beserta <strong id="hapusTotalBatch">0</strong> sertifikat di dalamnya akan dihapus permanen.
+                    Semua link verifikasi peserta tidak akan bisa diakses lagi.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex gap-2">
+                <button type="button" class="btn flex-fill"
+                        style="background:#f3f4f6;color:#374151;border:none;border-radius:9px;font-weight:600"
+                        data-bs-dismiss="modal">
+                    Batal
+                </button>
+                <button type="button" class="btn flex-fill" id="btnHapusBatchConfirm"
+                        style="background:#ef4444;color:#fff;border:none;border-radius:9px;font-weight:600"
+                        onclick="submitDeleteBatch()">
+                    <span id="hapusBatchSpinner" class="spinner-border spinner-border-sm me-1 d-none" role="status"></span>
+                    Hapus
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-{{-- Form hapus batch tersembunyi --}}
-<form id="formDeleteBatch" method="POST" style="display:none">
+{{-- Form tersembunyi untuk kirim DELETE request --}}
+<form id="formHapusBatch" method="POST" style="display:none">
     @csrf
     @method('DELETE')
 </form>
 
 <script>
-let _deleteBatchUrl = null;
-
-function confirmDeleteBatch(action, title, total) {
-    _deleteBatchUrl = action;
-    document.getElementById('deleteBatchName').textContent = '"' + title + '" akan dihapus permanen.';
-    document.getElementById('deleteBatchCount').textContent = total + ' sertifikat di dalamnya ikut terhapus.';
-    document.getElementById('modalDeleteBatch').style.display = 'flex';
+function confirmDeleteBatch(actionUrl, judul, total) {
+    document.getElementById('hapusNamaBatch').textContent  = judul;
+    document.getElementById('hapusTotalBatch').textContent = total;
+    document.getElementById('formHapusBatch').action       = actionUrl;
+    document.getElementById('hapusBatchSpinner').classList.add('d-none');
+    document.getElementById('btnHapusBatchConfirm').disabled = false;
+    new bootstrap.Modal(document.getElementById('modalHapusBatch')).show();
 }
 
-function closeDeleteBatchModal() {
-    _deleteBatchUrl = null;
-    document.getElementById('modalDeleteBatch').style.display = 'none';
+function submitDeleteBatch() {
+    const spinner = document.getElementById('hapusBatchSpinner');
+    const btn     = document.getElementById('btnHapusBatchConfirm');
+    spinner.classList.remove('d-none');
+    btn.disabled = true;
+    document.getElementById('formHapusBatch').submit();
 }
-
-document.getElementById('btnDoDeleteBatch').addEventListener('click', function () {
-    if (!_deleteBatchUrl) return;
-    const form = document.getElementById('formDeleteBatch');
-    form.action = _deleteBatchUrl;
-    closeDeleteBatchModal();
-    form.submit();
-});
-
-document.getElementById('modalDeleteBatch').addEventListener('click', function (e) {
-    if (e.target === this) closeDeleteBatchModal();
-});
 </script>
 
 @endsection

@@ -27,25 +27,25 @@
                         <div class="col-md-6">
                             <label class="form-label-sm">Nama Lembaga *</label>
                             <input type="text" name="institution_name" class="form-control"
-                                   placeholder="Contoh: Lembaga Pelatihan ABC"
+                                   placeholder="Masukkan nama lembaga"
                                    value="{{ old('institution_name') }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-sm">Email Lembaga *</label>
                             <input type="email" name="institution_email" class="form-control"
-                                   placeholder="info@lembaga.com"
+                                   placeholder="Masukkan email lembaga"
                                    value="{{ old('institution_email') }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-sm">Nomor Telepon *</label>
                             <input type="text" name="institution_phone" class="form-control"
-                                   placeholder="08xx-xxxx-xxxx"
+                                   placeholder="Masukkan nomor telepon"
                                    value="{{ old('institution_phone') }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label-sm">Alamat *</label>
                             <input type="text" name="institution_address" class="form-control"
-                                   placeholder="Kota, Provinsi"
+                                   placeholder="Masukkan alamat lembaga"
                                    value="{{ old('institution_address') }}" required>
                         </div>
 
@@ -64,7 +64,7 @@
                         <div class="col-md-6">
                             <label class="form-label-sm">Email Admin *</label>
                             <input type="email" name="admin_email" class="form-control"
-                                   placeholder="admin@lembaga.com"
+                                   placeholder="Masukkan email admin"
                                    value="{{ old('admin_email') }}" required>
                         </div>
                         <div class="col-md-6">

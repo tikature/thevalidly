@@ -1,9 +1,9 @@
 @extends('errors.layout')
 
-@section('title', '429 — Terlalu Banyak Permintaan')
+@section('title', '429 - Terlalu Banyak Permintaan')
 
 @section('content')
-<div class="error-icon">🚦</div>
+<div class="error-icon"><i class="fa-solid fa-rocket" style="color: rgb(255, 255, 255);"></i></div>
 <div class="error-code">429</div>
 <div class="divider"></div>
 <div class="error-title">Terlalu Banyak Permintaan</div>

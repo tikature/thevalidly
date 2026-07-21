@@ -15,12 +15,12 @@
                     <div class="mb-3">
                         <label class="form-label-sm">Nama Admin *</label>
                         <input type="text" name="admin_name" class="form-control"
-                               placeholder="Nama lengkap" required>
+                               placeholder="Masukkan nama admin" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label-sm">Email Admin *</label>
                         <input type="email" name="admin_email" class="form-control"
-                               placeholder="email@lembaga.com" required>
+                               placeholder="Masukkan email admin" required>
                     </div>
                     <div class="mb-0">
                         <label class="form-label-sm">Password *</label>

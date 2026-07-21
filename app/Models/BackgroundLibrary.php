@@ -35,6 +35,12 @@ class BackgroundLibrary extends Model
 
     public function getUrlAttribute(): string
     {
+        // Background sistem disimpan di public/storage/backgrounds/system/
+        // dan diakses via asset(), bukan Storage::disk('public')
+        if ($this->is_system) {
+            return asset('storage/' . $this->path);
+        }
+
         return Storage::disk('public')->url($this->path);
     }
 

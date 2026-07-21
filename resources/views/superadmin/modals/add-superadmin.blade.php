@@ -26,13 +26,13 @@
                         <label class="form-label-sm">Nama *</label>
                         <input type="text" name="superadmin_name" class="form-control"
                                value="{{ old('superadmin_name') }}"
-                               placeholder="Nama lengkap" required>
+                               placeholder="Masukkan nama super admin" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label-sm">Email *</label>
                         <input type="email" name="superadmin_email" class="form-control"
                                value="{{ old('superadmin_email') }}"
-                               placeholder="email@validly.app" required>
+                               placeholder="Masukkan email super admin" required>
                     </div>
                     <div class="mb-0">
                         <label class="form-label-sm">Password *</label>

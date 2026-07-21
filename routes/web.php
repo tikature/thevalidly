@@ -21,9 +21,11 @@ Route::get('/verify/{token}', [CertificateController::class, 'verify'])->name('c
 
 // Halaman peserta publik (ADA download PDF)
 Route::get('/cert/{token}', [CertificateController::class, 'participant'])->name('certificate.participant');
+Route::get('/cert/{token}/pdf', [CertificateController::class, 'pdf'])->name('certificate.pdf.public');
 
 // Halaman batch publik
 Route::get('/batch/{batch_token}', [CertificateBatchController::class, 'show'])->name('certificate.batch.show');
+Route::get('/batch/{batch_token}/zip', [CertificateBatchController::class, 'downloadZipPublic'])->name('certificate.batch.zip.public');
 
 /*
 |--------------------------------------------------------------------------
@@ -70,13 +72,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('dashboard')->group(function (
     Route::get('/certificates/batch/{token}/progress',         [CertificateBatchController::class, 'progress'])->name('certificate.batch.progress');
     Route::get('/certificates/batch/{token}/certs',            [CertificateBatchController::class, 'certificates'])->name('certificate.batch.certs');
     Route::get('/certificates/batch/{token}/zip',              [CertificateBatchController::class, 'downloadZip'])->name('certificate.batch.zip');
-    Route::post('/certificates/batch/{token}/cancel', [CertificateBatchController::class, 'cancelBatch'])
-    ->name('certificate.batch.cancel');
 
     // Batch history
     Route::get('/history/batch',                    [CertificateController::class, 'historyBatch'])->name('certificate.history.batch');
     Route::get('/history/batch/{batchId}/detail',   [CertificateBatchController::class, 'detail'])->name('certificate.batch.detail');
     Route::delete('/history/batch/{batchId}',        [CertificateBatchController::class, 'destroyBatch'])->name('certificate.batch.destroy');
+
 
     // Riwayat individual
     Route::get('/history', [CertificateController::class, 'history'])->name('certificate.history');
@@ -114,6 +115,10 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('superadmin')->group(fun
     Route::patch('/admins/{user}',                     [SuperAdminController::class, 'updateAdmin'])->name('superadmin.admins.update');
     Route::delete('/admins/{user}',                    [SuperAdminController::class, 'destroyAdmin'])->name('superadmin.admins.destroy');
     
-    Route::post('/superadmins',          [SuperAdminController::class, 'storeSuperAdmin'])->name('superadmin.superadmins.store');
-    Route::delete('/superadmins/{user}', [SuperAdminController::class, 'destroySuperAdmin'])->name('superadmin.superadmins.destroy');
+    Route::post('/superadmins',                       [SuperAdminController::class, 'storeSuperAdmin'])->name('superadmin.superadmins.store');
+    Route::delete('/superadmins/{user}',              [SuperAdminController::class, 'destroySuperAdmin'])->name('superadmin.superadmins.destroy');
+    
+     Route::get('/backgrounds',                          [SuperAdminController::class, 'indexBackgrounds'])->name('superadmin.backgrounds.index');
+    Route::post('/backgrounds',                         [SuperAdminController::class, 'storeBackground'])->name('superadmin.backgrounds.store');
+    Route::delete('/backgrounds/{background}',          [SuperAdminController::class, 'destroyBackground'])->name('superadmin.backgrounds.destroy');
 });

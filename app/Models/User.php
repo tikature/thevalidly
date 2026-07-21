@@ -12,7 +12,7 @@ class User extends Authenticatable
     use Notifiable, HasFactory;
 
     protected $fillable = [
-        'name', 'email', 'password', 'plain_password', 'role', 'institution_id', 'is_active',
+        'name', 'email', 'password', 'plain_password', 'role', 'institution_id', 'is_active', 'is_primary',
     ];
 
     protected $hidden = [
@@ -22,8 +22,9 @@ class User extends Authenticatable
     ];
 
     protected $casts = [
-        'is_active' => 'boolean',
-        'password'  => 'hashed',
+        'is_active'  => 'boolean',
+        'is_primary' => 'boolean',
+        'password'   => 'hashed',
         // plain_password sengaja tidak di-cast 'hashed'
     ];
 
@@ -37,6 +38,12 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    // Helper: cek apakah user adalah super admin utama (akun pertama/primer)
+    public function isPrimarySuperAdmin(): bool
+    {
+        return $this->role === 'super_admin' && $this->is_primary === true;
     }
 
     // Relasi ke lembaga

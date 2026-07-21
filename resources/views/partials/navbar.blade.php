@@ -3,7 +3,9 @@
 <nav class="navbar navbar-expand-lg navbar-validly py-2">
     <div class="container-fluid px-4">
         <a class="navbar-brand navbar-brand-text" href="{{ route('landing') }}">
-            ✦ Validly
+            <img src="{{ asset('validly-logo1.svg') }}" alt="Validly" 
+            style="height: 25px; width: 25px; margin-right: 3px; background: var(--gold); border-radius: 7px; padding: 2px;">
+            <span style="color: var(--gold); font-size: 25px; font-family: serif; font-weight: bold;">Validly</span>
         </a>
 
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">

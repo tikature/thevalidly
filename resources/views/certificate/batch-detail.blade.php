@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Batch — ' . $batch->displayTitle())
+@section('title', 'Detail Batch - ' . $batch->displayTitle())
 
 @section('content')
 
@@ -128,7 +128,44 @@
         </div>
     </div>
 </div>
+{{-- TAMBAHKAN SNIPPET INI tepat sebelum baris: --}}
+{{-- <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden"> --}}
 
+{{-- Search Bar --}}
+<form method="GET" action="{{ route('certificate.batch.detail', $batch->id) }}" class="mb-3">
+    <div class="input-group" style="max-width:400px">
+        <input
+            type="text"
+            name="search"
+            value="{{ request('search') }}"
+            placeholder="Cari nama, nomor, instansi..."
+            class="form-control"
+            style="border-radius:8px 0 0 8px;border:1.5px solid #dde4f0;font-size:.85rem;color:var(--navy)"
+        >
+        <button
+            type="submit"
+            class="btn"
+            style="background:var(--navy);color:var(--gold-light);border-radius:0 8px 8px 0;padding:0 16px;font-size:.85rem;font-weight:600"
+        >
+            <i class="bi bi-search"></i>
+        </button>
+        @if(request('search'))
+            <a
+                href="{{ route('certificate.batch.detail', $batch->id) }}"
+                class="btn btn-sm ms-2 d-flex align-items-center"
+                style="background:#f0f4ff;color:var(--navy-mid);border:1.5px solid #dde4f0;border-radius:8px;font-size:.8rem;font-weight:600;white-space:nowrap"
+            >
+                <i class="bi bi-x me-1"></i>Reset
+            </a>
+        @endif
+    </div>
+    @if(request('search'))
+        <div class="mt-2" style="font-size:.78rem;color:#9ca3af">
+            Hasil pencarian untuk "<strong>{{ request('search') }}</strong>"
+            — {{ $certificates->total() }} sertifikat ditemukan
+        </div>
+    @endif
+</form>
 {{-- Tabel sertifikat --}}
 <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden">
     <div class="table-responsive">
@@ -137,7 +174,6 @@
                 <tr>
                     <th class="px-4 py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase">Nama Peserta</th>
                     <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase">Nomor</th>
-                    <th class="py-3" style="font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase">Terbit</th>
                     <th class="py-3" style="min-width:200px font-weight:600;font-size:.72rem;letter-spacing:1px;text-transform:uppercase">Aksi</th>
                 </tr>
             </thead>
@@ -153,7 +189,6 @@
                     <td class="py-3">
                         <span style="font-family:monospace;font-size:.8rem;background:#f0f4ff;color:var(--navy-mid);padding:3px 8px;border-radius:5px">{{ $cert->nomor }}</span>
                     </td>
-                    <td class="py-3" style="color:#6b7280;font-size:.85rem">{{ $cert->issued_at->format('d M Y') }}</td>
                     <td class="py-3 pe-4">
                         <div class="d-flex gap-2 align-items-center">
                             {{-- Download PDF --}}
