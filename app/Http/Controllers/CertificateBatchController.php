@@ -230,145 +230,150 @@ class CertificateBatchController extends Controller
     }
 
     public function downloadZip(string $token)
-    {
-        set_time_limit(300);
-        ini_set('memory_limit', '256M');
+{
+    set_time_limit(300);
+    ini_set('memory_limit', '256M');
 
-        $batch = CertificateBatch::where('batch_token', $token)
-            ->where('institution_id', auth()->user()->institution_id)
-            ->firstOrFail();
+    $batch = CertificateBatch::where('batch_token', $token)
+        ->where('institution_id', auth()->user()->institution_id)
+        ->firstOrFail();
 
-        $certificates = $batch->certificates()->get();
+    $certificates = $batch->certificates()->get();
 
-        if ($certificates->isEmpty()) {
-            return response()->json(['error' => 'Tidak ada sertifikat dalam batch ini.'], 422);
-        }
-
-        // Nama file ZIP
-        $cleanEventName = $batch->event_name ?: ($batch->title ?: 'Sertifikat');
-        $eventSlug      = Str::slug($cleanEventName, '_');
-        $eventSlug      = mb_substr($eventSlug, 0, 40) ?: 'batch';
-        $tanggal     = now()->format('Ymd');
-        $batchNo     = 1;
-        if (preg_match('/Batch\s+(\d+)/i', $batch->title ?? '', $m)) {
-            $batchNo = $m[1];
-        }
-        $zipFilename = "Sertifikat_{$eventSlug}_{$tanggal}_Batch{$batchNo}.zip";
-
-        $tempDir  = storage_path('app' . DIRECTORY_SEPARATOR . 'temp');
-        $tempPath = $tempDir . DIRECTORY_SEPARATOR . 'batch_' . substr($token, 0, 8) . '_' . time() . '.zip';
-
-        if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
-        }
-
-        $zip    = $this->zipArchive;
-        $opened = $zip->open($tempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-
-        if ($opened !== true) {
-            return response()->json(['error' => 'Gagal membuat file ZIP di server.'], 1000);
-        }
-
-        $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
-        $added    = 0;
-
-        foreach ($certificates as $cert) {
-            $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $cert->verification_token . '.pdf';
-
-            // PDF tidak ada di cache? Skip — jangan generate ulang di sini.
-            // Kasus ini hanya terjadi kalau user download sebelum semua job selesai.
-            if (!file_exists($cachePath) || filesize($cachePath) === 0) {
-                \Illuminate\Support\Facades\Log::warning(
-                    "ZIP skip — PDF tidak ada di cache: {$cert->nama} [{$cert->verification_token}]"
-                );
-                continue;
-            }
-
-            $safeNama  = Str::slug($cert->nama ?: 'peserta');
-            $safeNomor = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $cert->nomor ?: 'cert');
-            $zip->addFile($cachePath, $safeNama . '_' . $safeNomor . '.pdf');
-            $added++;
-        }
-
-        $zip->close();
-
-        if ($added === 0) {
-            @unlink($tempPath);
-            return response()->json([
-                'error' => 'PDF belum siap. Tunggu hingga semua sertifikat selesai diproses, lalu coba lagi.'
-            ], 422);
-        }
-
-        return response()->download($tempPath, $zipFilename, [
-            'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend(true);
+    if ($certificates->isEmpty()) {
+        return response()->json(['error' => 'Tidak ada sertifikat dalam batch ini.'], 422);
     }
-    
-    public function downloadZipPublic(string $batchToken)
-    {
-        set_time_limit(300);
-        ini_set('memory_limit', '256M');
-    
-        $batch = CertificateBatch::where('batch_token', $batchToken)->first();
-    
-        if (!$batch) {
-            return response(view('certificate.batch-invalid'), 404);
-        }
-    
-        $certificates = $batch->certificates()->get();
-    
-        if ($certificates->isEmpty()) {
-            return back()->with('error', 'Tidak ada sertifikat dalam batch ini.');
-        }
-    
-        $cleanEventName = $batch->event_name ?: ($batch->title ?: 'Sertifikat');
-        $eventSlug      = Str::slug($cleanEventName, '_');
-        $eventSlug      = mb_substr($eventSlug, 0, 40) ?: 'batch';
-        $tanggal        = now()->format('Ymd');
-        $batchNo        = 1;
-        if (preg_match('/Batch\s+(\d+)/i', $batch->title ?? '', $m)) {
-            $batchNo = $m[1];
-        }
-        $zipFilename = "Sertifikat_{$eventSlug}_{$tanggal}_Batch{$batchNo}.zip";
-    
-        $tempDir  = storage_path('app' . DIRECTORY_SEPARATOR . 'temp');
-        $tempPath = $tempDir . DIRECTORY_SEPARATOR . 'public_batch_' . substr($batchToken, 0, 8) . '_' . time() . '.zip';
-    
-        if (!is_dir($tempDir)) {
-            mkdir($tempDir, 0755, true);
-        }
-    
-        $zip    = new \ZipArchive();
-        $opened = $zip->open($tempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
-    
-        if ($opened !== true) {
-            return response()->json(['error' => 'Gagal membuat file ZIP.'], 1000);
-        }
-    
-        $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
-        $added    = 0;
-    
-        foreach ($certificates as $cert) {
-            $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $cert->verification_token . '.pdf';
-            if (!file_exists($cachePath) || filesize($cachePath) === 0) continue;
-    
-            $safeNama  = Str::slug($cert->nama ?: 'peserta');
-            $safeNomor = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $cert->nomor ?: 'cert');
-            $zip->addFile($cachePath, $safeNama . '_' . $safeNomor . '.pdf');
-            $added++;
-        }
-    
-        $zip->close();
-    
-        if ($added === 0) {
-            @unlink($tempPath);
-            return response()->json(['error' => 'PDF belum siap. Coba lagi sebentar.'], 422);
-        }
-    
-        return response()->download($tempPath, $zipFilename, [
-            'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend(true);
+
+    $cleanEventName = $batch->event_name ?: ($batch->title ?: 'Sertifikat');
+    $eventSlug      = Str::slug($cleanEventName, '_');
+    $eventSlug      = mb_substr($eventSlug, 0, 40) ?: 'batch';
+    $tanggal        = now()->format('Ymd');
+    $batchNo        = 1;
+    if (preg_match('/Batch\s+(\d+)/i', $batch->title ?? '', $m)) {
+        $batchNo = $m[1];
     }
+    $zipFilename = "Sertifikat_{$eventSlug}_{$tanggal}_Batch{$batchNo}.zip";
+
+    $tempDir  = storage_path('app' . DIRECTORY_SEPARATOR . 'temp');
+    $tempPath = $tempDir . DIRECTORY_SEPARATOR . 'batch_' . substr($token, 0, 8) . '_' . time() . '.zip';
+
+    if (!is_dir($tempDir)) {
+        mkdir($tempDir, 0755, true);
+    }
+
+    // 1. Inisialisasi $zip DULU
+    $zip    = $this->zipArchive;
+    // 2. Buat variabel $opened DULU
+    $opened = $zip->open($tempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+    // 3. BARU di-check
+    if ($opened !== true) {
+        return response()->json(['error' => 'Gagal membuat file ZIP di server.'], 500);
+    }
+
+    $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
+    $added    = 0;
+
+    foreach ($certificates as $cert) {
+        $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $cert->verification_token . '.pdf';
+
+        if (!file_exists($cachePath) || filesize($cachePath) === 0) {
+            \Illuminate\Support\Facades\Log::warning(
+                "ZIP skip — PDF tidak ada di cache: {$cert->nama} [{$cert->verification_token}]"
+            );
+            continue;
+        }
+
+        $safeNama  = Str::slug($cert->nama ?: 'peserta');
+        $safeNomor = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $cert->nomor ?: 'cert');
+        $zip->addFile($cachePath, $safeNama . '_' . $safeNomor . '.pdf');
+        $added++;
+    }
+
+    $zip->close();
+
+    if ($added === 0) {
+        @unlink($tempPath);
+        return response()->json([
+            'error' => 'PDF belum siap. Tunggu hingga semua sertifikat selesai diproses, lalu coba lagi.'
+        ], 422);
+    }
+
+    return response()->download($tempPath, $zipFilename, [
+        'Content-Type' => 'application/zip',
+    ])->deleteFileAfterSend(true);
+}
+
+public function downloadZipPublic(string $batchToken)
+{
+    set_time_limit(300);
+    ini_set('memory_limit', '256M');
+
+    $batch = CertificateBatch::where('batch_token', $batchToken)->first();
+
+    if (!$batch) {
+        return response(view('certificate.batch-invalid'), 404);
+    }
+
+    $certificates = $batch->certificates()->get();
+
+    if ($certificates->isEmpty()) {
+        return back()->with('error', 'Tidak ada sertifikat dalam batch ini.');
+    }
+
+    $cleanEventName = $batch->event_name ?: ($batch->title ?: 'Sertifikat');
+    $eventSlug      = Str::slug($cleanEventName, '_');
+    $eventSlug      = mb_substr($eventSlug, 0, 40) ?: 'batch';
+    $tanggal        = now()->format('Ymd');
+    $batchNo        = 1;
+    if (preg_match('/Batch\s+(\d+)/i', $batch->title ?? '', $m)) {
+        $batchNo = $m[1];
+    }
+    $zipFilename = "Sertifikat_{$eventSlug}_{$tanggal}_Batch{$batchNo}.zip";
+
+    $tempDir  = storage_path('app' . DIRECTORY_SEPARATOR . 'temp');
+    $tempPath = $tempDir . DIRECTORY_SEPARATOR . 'public_batch_' . substr($batchToken, 0, 8) . '_' . time() . '.zip';
+
+    if (!is_dir($tempDir)) {
+        mkdir($tempDir, 0755, true);
+    }
+
+    // 1. Gunakan $this->zipArchive
+    $zip    = $this->zipArchive;
+    // 2. Buat variabel $opened
+    $opened = $zip->open($tempPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+
+    // 3. BARU di-check
+    if ($opened !== true) {
+        return response()->json(['error' => 'Gagal membuat file ZIP.'], 500);
+    }
+
+    $cacheDir = storage_path('app' . DIRECTORY_SEPARATOR . 'pdf_cache');
+    $added    = 0;
+
+    foreach ($certificates as $cert) {
+        $cachePath = $cacheDir . DIRECTORY_SEPARATOR . $cert->verification_token . '.pdf';
+        if (!file_exists($cachePath) || filesize($cachePath) === 0) continue;
+
+        $safeNama  = Str::slug($cert->nama ?: 'peserta');
+        $safeNomor = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '-', $cert->nomor ?: 'cert');
+        $zip->addFile($cachePath, $safeNama . '_' . $safeNomor . '.pdf');
+        $added++;
+    }
+
+    $zip->close();
+
+    if ($added === 0) {
+        @unlink($tempPath);
+        return response()->json(['error' => 'PDF belum siap. Coba lagi sebentar.'], 422);
+    }
+
+    return response()->download($tempPath, $zipFilename, [
+        'Content-Type' => 'application/zip',
+    ])->deleteFileAfterSend(true);
+}
+    
+    
 
 
     private function resolveAssetPath(?string $relativePath): string
