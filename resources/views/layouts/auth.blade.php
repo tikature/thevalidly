@@ -33,7 +33,7 @@
         <div class="reset-info">
             <i class="bi bi-info-circle me-1"></i>
             Lupa password? Kirim permintaan reset ke
-            <a href="mailto:mail@oemahwebsite.com">mail@oemahwebsite.com</a>
+            <a href="mailto:mail@dewiatika.dev">mail@dewiatika.dev</a>
         </div>
 
         <div class="back-link mt-3">
