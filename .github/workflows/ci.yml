@@ -21,8 +21,8 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_DB: postgres
-          POSTGRES_USER: postgres.cznejsbyfvcyptobheqx
-          POSTGRES_PASSWORD: FnnlVqaQeUX1GZqB
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: >-
@@ -63,11 +63,11 @@ jobs:
         env:
           APP_ENV: testing
           DB_CONNECTION: pgsql
-          DB_HOST: aws-0-ap-southeast-2.pooler.supabase.com
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_DATABASE: postgres
-          DB_USERNAME: postgres.cznejsbyfvcyptobheqx
-          DB_PASSWORD: FnnlVqaQeUX1GZqB
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
           BCRYPT_ROUNDS: 4
 
       - name: Run tests with coverage
@@ -75,11 +75,11 @@ jobs:
         env:
           APP_ENV: testing
           DB_CONNECTION: pgsql
-          DB_HOST: aws-0-ap-southeast-2.pooler.supabase.com
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_DATABASE: postgres
-          DB_USERNAME: postgres.cznejsbyfvcyptobheqx
-          DB_PASSWORD: FnnlVqaQeUX1GZqB
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
           BCRYPT_ROUNDS: 4
 
       - name: Upload coverage report
