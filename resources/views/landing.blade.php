@@ -320,21 +320,21 @@
                         <div class="contact-icon">🌐</div>
                         <div>
                             <div class="contact-label">Website</div>
-                            <a href="https://oemahwebsite.com" target="_blank" class="contact-value">oemahwebsite.com</a>
+                            <a href="https://dewiatika.dev" target="_blank" class="contact-value">dewiatika.dev</a>
                         </div>
                     </div>
                     <div class="contact-item">
                         <div class="contact-icon">📱</div>
                         <div>
                             <div class="contact-label">WhatsApp</div>
-                            <a href="https://wa.me/628112522117" target="_blank" class="contact-value">+62 811-252-2117</a>
+                            <a href="https://dewiatika.dev" target="_blank" class="contact-value">+62 111-111-1111</a>
                         </div>
                     </div>
                     <div class="contact-item">
                         <div class="contact-icon">✉️</div>
                         <div>
                             <div class="contact-label">Email</div>
-                            <a href="mailto:atika@oemahwebsite.com" class="contact-value">atika@oemahwebsite.com</a>
+                            <a href="mailto:atika@dewiatika.dev" class="contact-value">atika@dewiatika.dev</a>
                         </div>
                     </div>
                     <div class="contact-item mb-4">
@@ -357,7 +357,7 @@
 <section class="section-cta">
     <div class="container position-relative" style="z-index:2">
         <h2 class="cta-h2">Mulai Bersama Validly<br>Hari Ini</h2>
-        <p class="cta-p">Percayakan penerbitan sertifikat lembaga Anda kepada Validly by Oemah Website Purwokerto.</p>
+        <p class="cta-p">Percayakan penerbitan sertifikat lembaga Anda kepada Validly by Dewi Atika.</p>
         <div class="d-flex gap-3 justify-content-center flex-wrap">
             <a href="#kontak" class="btn-primary-hero">
                 Hubungi Kami <i class="bi bi-arrow-right"></i>
@@ -379,7 +379,7 @@
                     Validly
                 </div>
                 <p class="foot-tag">Platform generator sertifikat digital untuk lembaga pelatihan dan pendidikan.</p>
-                <p class="foot-tag mt-2" style="color:rgba(255,255,255,.12)">by Oemah Website Purwokerto<br>2211104042</p> 
+                <p class="foot-tag mt-2" style="color:rgba(255,255,255,.12)">by Dew Atika Muthi<br>2211104042</p> 
             </div>
             <div class="col-6 col-lg-2">
                 <div class="foot-h">Platform</div>
@@ -402,7 +402,7 @@
             <div class="col-6 col-lg-2">
                 <div class="foot-h">Kontak</div>
                 <ul class="foot-ul">
-                    <li><a href="https://oemahwebsite.com" target="_blank">oemahwebsite.com</a></li>
+                    <li><a href="https://dewiatika.dev" target="_blank">dewiatika.dev</a></li>
                     <li><a href="#kontak">WhatsApp</a></li>
                     <li><a href="#kontak">Email</a></li>
                     <li><a href="#kontak">Purwokerto, Jateng</a></li>
@@ -411,7 +411,7 @@
         </div>
         <div class="foot-bottom">
             <div class="foot-copy">&copy; {{ date('Y') }} <strong>Validly</strong> -$_ENV Platform Generator Sertifikat Digital.</div>
-            <div class="foot-by">by <a href="https://oemahwebsite.com" target="_blank">Oemah Website Purwokerto</a></div>
+            <div class="foot-by">by <a href="https://dewiatika.dev" target="_blank">Dewi Atika</a></div>
         </div>
     </div>
 </footer>
