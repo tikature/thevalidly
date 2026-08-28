@@ -28,8 +28,8 @@ return new class extends Migration
         DB::statement("
             UPDATE certificates
             SET date_start = CASE
-                WHEN event_date REGEXP '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-                    THEN REGEXP_SUBSTR(event_date, '[0-9]{4}-[0-9]{2}-[0-9]{2}')
+                WHEN event_date ~ '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                    THEN (substring(event_date from '[0-9]{4}-[0-9]{2}-[0-9]{2}'))::date
                 ELSE NULL
             END
         ");
@@ -47,8 +47,8 @@ return new class extends Migration
         DB::statement("
             UPDATE certificate_batches
             SET date_start = CASE
-                WHEN event_date REGEXP '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-                    THEN REGEXP_SUBSTR(event_date, '[0-9]{4}-[0-9]{2}-[0-9]{2}')
+                WHEN event_date ~ '[0-9]{4}-[0-9]{2}-[0-9]{2}'
+                    THEN (substring(event_date from '[0-9]{4}-[0-9]{2}-[0-9]{2}'))::date
                 ELSE NULL
             END
         ");
@@ -70,7 +70,7 @@ return new class extends Migration
             UPDATE certificates
             SET event_date = CASE
                 WHEN date_start IS NOT NULL
-                    THEN CONCAT('Held on ', DATE_FORMAT(date_start, '%M %d, %Y'))
+                    THEN CONCAT('Held on ', to_char(date_start, 'FMMonth DD, YYYY'))
                 ELSE ''
             END
         ");
@@ -88,7 +88,7 @@ return new class extends Migration
             UPDATE certificate_batches
             SET event_date = CASE
                 WHEN date_start IS NOT NULL
-                    THEN CONCAT('Held on ', DATE_FORMAT(date_start, '%M %d, %Y'))
+                    THEN CONCAT('Held on ', to_char(date_start, 'FMMonth DD, YYYY'))
                 ELSE ''
             END
         ");
