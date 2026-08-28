@@ -25,14 +25,7 @@ return new class extends Migration
         // Migrasi data lama: coba parse tanggal dari string event_date
         // Data lama mungkin berbentuk "Held on 30-06-25 at Jakarta" atau string bebas
         // Sisakan null jika tidak bisa di-parse — lebih aman daripada nilai salah
-        DB::statement("
-            UPDATE certificates
-            SET date_start = CASE
-                WHEN event_date ~ '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-                    THEN (substring(event_date from '[0-9]{4}-[0-9]{2}-[0-9]{2}'))::date
-                ELSE NULL
-            END
-        ");
+        $this->copyParsedDates('certificates');
 
         Schema::table('certificates', function (Blueprint $table) {
             $table->dropColumn('event_date');
@@ -44,14 +37,7 @@ return new class extends Migration
             $table->date('date_end')->nullable()->after('date_start');
         });
 
-        DB::statement("
-            UPDATE certificate_batches
-            SET date_start = CASE
-                WHEN event_date ~ '[0-9]{4}-[0-9]{2}-[0-9]{2}'
-                    THEN (substring(event_date from '[0-9]{4}-[0-9]{2}-[0-9]{2}'))::date
-                ELSE NULL
-            END
-        ");
+        $this->copyParsedDates('certificate_batches');
 
         Schema::table('certificate_batches', function (Blueprint $table) {
             $table->dropColumn('event_date');
@@ -66,14 +52,7 @@ return new class extends Migration
         });
 
         // Rebuild string dari date_start saja (informasi date_end tidak bisa di-recover sempurna)
-        DB::statement("
-            UPDATE certificates
-            SET event_date = CASE
-                WHEN date_start IS NOT NULL
-                    THEN CONCAT('Held on ', to_char(date_start, 'FMMonth DD, YYYY'))
-                ELSE ''
-            END
-        ");
+        $this->restoreEventDates('certificates');
 
         Schema::table('certificates', function (Blueprint $table) {
             $table->dropColumn(['date_start', 'date_end']);
@@ -84,17 +63,43 @@ return new class extends Migration
             $table->string('event_date', 100)->nullable()->after('event_name');
         });
 
-        DB::statement("
-            UPDATE certificate_batches
-            SET event_date = CASE
-                WHEN date_start IS NOT NULL
-                    THEN CONCAT('Held on ', to_char(date_start, 'FMMonth DD, YYYY'))
-                ELSE ''
-            END
-        ");
+        $this->restoreEventDates('certificate_batches');
 
         Schema::table('certificate_batches', function (Blueprint $table) {
             $table->dropColumn(['date_start', 'date_end']);
         });
+    }
+
+    private function copyParsedDates(string $table): void
+    {
+        foreach (DB::table($table)->select('id', 'event_date')->get() as $row) {
+            if (!preg_match('/\d{4}-\d{2}-\d{2}/', (string) $row->event_date, $matches)) {
+                continue;
+            }
+
+            $date = \DateTime::createFromFormat('!Y-m-d', $matches[0]);
+            if ($date && $date->format('Y-m-d') === $matches[0]) {
+                DB::table($table)->where('id', $row->id)->update([
+                    'date_start' => $date->format('Y-m-d'),
+                ]);
+            }
+        }
+    }
+
+    private function restoreEventDates(string $table): void
+    {
+        foreach (DB::table($table)->select('id', 'date_start')->get() as $row) {
+            $eventDate = '';
+            if ($row->date_start !== null) {
+                $date = \DateTime::createFromFormat('!Y-m-d', (string) $row->date_start);
+                if ($date) {
+                    $eventDate = 'Held on ' . $date->format('F d, Y');
+                }
+            }
+
+            DB::table($table)->where('id', $row->id)->update([
+                'event_date' => $eventDate,
+            ]);
+        }
     }
 };

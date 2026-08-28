@@ -19,7 +19,7 @@ class CleanBatchDuplicates extends Command
             ->whereNotNull('batch_id')
             ->select('batch_id', 'nama', 'perusahaan', DB::raw('MIN(id) as keep_id'), DB::raw('COUNT(*) as cnt'))
             ->groupBy('batch_id', 'nama', 'perusahaan')
-            ->having('cnt', '>', 1);
+            ->havingRaw('COUNT(*) > ?', [1]);
 
         if ($batchId) {
             $query->where('batch_id', $batchId);

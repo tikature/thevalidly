@@ -6,6 +6,7 @@ use App\Jobs\ProcessCertificateJob;
 use App\Models\Certificate;
 use App\Models\CertificateBatch;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 
 class CertificateBatchController extends Controller
@@ -77,9 +78,7 @@ class CertificateBatchController extends Controller
      */
     public function progress(string $token)
     {
-        $batch = CertificateBatch::where('batch_token', $token)
-            ->where('institution_id', auth()->user()->institution_id)
-            ->firstOrFail();
+        $batch = $this->findInstitutionBatchOrFail($token);
 
         // Hitung PDF yang sudah ada di cache — real-time, tidak perlu tunggu done
         $cachedCount = 0;
@@ -135,6 +134,10 @@ class CertificateBatchController extends Controller
      */
     public function show(string $batchToken)
     {
+        if (!Str::isUuid($batchToken)) {
+            return response(view('certificate.batch-invalid'), 404);
+        }
+
         $batch = CertificateBatch::with(['institution', 'certificates'])
             ->where('batch_token', $batchToken)
             ->first();
@@ -195,9 +198,7 @@ class CertificateBatchController extends Controller
      */
     public function certificates(string $token)
     {
-        $batch = CertificateBatch::where('batch_token', $token)
-            ->where('institution_id', auth()->user()->institution_id)
-            ->firstOrFail();
+        $batch = $this->findInstitutionBatchOrFail($token);
 
         $certificates = $batch->certificates()
             ->select('id', 'nama', 'nomor', 'perusahaan', 'verification_token')
@@ -234,9 +235,7 @@ class CertificateBatchController extends Controller
     set_time_limit(300);
     ini_set('memory_limit', '256M');
 
-    $batch = CertificateBatch::where('batch_token', $token)
-        ->where('institution_id', auth()->user()->institution_id)
-        ->firstOrFail();
+    $batch = $this->findInstitutionBatchOrFail($token);
 
     $certificates = $batch->certificates()->get();
 
@@ -308,6 +307,10 @@ public function downloadZipPublic(string $batchToken)
 {
     set_time_limit(300);
     ini_set('memory_limit', '256M');
+
+    if (!Str::isUuid($batchToken)) {
+        return response(view('certificate.batch-invalid'), 404);
+    }
 
     $batch = CertificateBatch::where('batch_token', $batchToken)->first();
 
@@ -381,5 +384,16 @@ public function downloadZipPublic(string $batchToken)
         if (!$relativePath) return '';
         $full = storage_path('app/public/' . $relativePath);
         return str_replace('\\', '/', $full);
+    }
+
+    private function findInstitutionBatchOrFail(string $token): CertificateBatch
+    {
+        if (!Str::isUuid($token)) {
+            throw (new ModelNotFoundException())->setModel(CertificateBatch::class, [$token]);
+        }
+
+        return CertificateBatch::where('batch_token', $token)
+            ->where('institution_id', auth()->user()->institution_id)
+            ->firstOrFail();
     }
 }
